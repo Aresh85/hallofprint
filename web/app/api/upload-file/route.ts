@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
           'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
         },
         body: JSON.stringify({
-          from: 'Hall of Prints <onboarding@resend.dev>',
+          from: 'Hall of Prints <hello@urkaisolue.resend.app>',
           to: ['a1@inteeka.com'],
           subject: `New Artwork Submission - ${customerName}`,
           html: `
