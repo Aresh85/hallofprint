@@ -55,6 +55,54 @@ export async function POST(req: NextRequest) {
       -----------------------------
     `);
 
+    // Send email notification
+    try {
+      const emailResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+        },
+        body: JSON.stringify({
+          from: 'Hall of Prints <onboarding@resend.dev>',
+          to: ['a1@inteeka.com'],
+          subject: `New Artwork Submission - ${customerName}`,
+          html: `
+            <h2>New Artwork Submission Received</h2>
+            <p>A customer has submitted artwork for printing.</p>
+            
+            <h3>Customer Information:</h3>
+            <ul>
+              <li><strong>Name:</strong> ${customerName}</li>
+              <li><strong>Email:</strong> ${customerEmail}</li>
+              <li><strong>Phone:</strong> ${customerPhone || 'Not provided'}</li>
+              <li><strong>Order ID:</strong> ${orderId}</li>
+            </ul>
+            
+            <h3>File Details:</h3>
+            <ul>
+              <li><strong>File Name:</strong> ${file.name}</li>
+              <li><strong>File Type:</strong> ${file.type}</li>
+              <li><strong>File Size:</strong> ${(buffer.length / 1024 / 1024).toFixed(2)} MB</li>
+            </ul>
+            
+            ${customerNotes ? `<h3>Special Instructions:</h3><p>${customerNotes}</p>` : ''}
+            
+            <p><em>Please check your Vercel logs for the uploaded file details.</em></p>
+          `
+        })
+      });
+
+      if (!emailResponse.ok) {
+        console.error('Failed to send email notification:', await emailResponse.text());
+      } else {
+        console.log('Email notification sent successfully');
+      }
+    } catch (emailError) {
+      console.error('Error sending email notification:', emailError);
+      // Don't fail the upload if email fails
+    }
+
     // 3. Return success response
     return NextResponse.json({ 
       success: true, 
