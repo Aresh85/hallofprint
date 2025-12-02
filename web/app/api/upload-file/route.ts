@@ -13,9 +13,17 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const orderId = formData.get('orderId') as string;
+    const customerName = formData.get('customerName') as string;
+    const customerEmail = formData.get('customerEmail') as string;
+    const customerPhone = formData.get('customerPhone') as string;
+    const customerNotes = formData.get('customerNotes') as string;
 
     if (!file || !orderId) {
       return NextResponse.json({ error: 'Missing file or order ID.' }, { status: 400 });
+    }
+    
+    if (!customerName || !customerEmail) {
+      return NextResponse.json({ error: 'Missing customer information.' }, { status: 400 });
     }
 
     // Convert file buffer to upload (simulated cloud upload)
@@ -32,10 +40,14 @@ export async function POST(req: NextRequest) {
     // You would then update the Sanity 'order' document with the file URL:
     // await sanityClient.patch(orderId).set({ printFileUrl: fileUrl, fileStatus: 'Received' }).commit();
 
-    // Since we are simulating, we'll just log the file metadata
+    // Since we are simulating, we'll just log the file and customer metadata
     console.log(`
       --- FILE UPLOAD SUCCESS ---
       Order ID: ${orderId}
+      Customer Name: ${customerName}
+      Customer Email: ${customerEmail}
+      Customer Phone: ${customerPhone || 'Not provided'}
+      Customer Notes: ${customerNotes || 'None'}
       File Name: ${file.name}
       File Type: ${file.type}
       File Size: ${buffer.length} bytes

@@ -13,9 +13,17 @@ export default function FileUploaderPage() {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   
+  // Customer information state
+  const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    notes: ''
+  });
+  
   // NOTE: In a production app, you would fetch the Order ID from 
   // URL search params (e.g., from the /success page redirect) or a secure session.
-  const demoOrderId = 'HP-12345'; 
+  const demoOrderId = 'HP-12345';
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -33,17 +41,43 @@ export default function FileUploaderPage() {
   }, []);
 
   const handleUpload = async () => {
+    // Validate required fields
+    if (!customerInfo.name.trim()) {
+      setMessage('Please enter your full name.');
+      setUploadStatus('error');
+      return;
+    }
+    
+    if (!customerInfo.email.trim()) {
+      setMessage('Please enter your email address.');
+      setUploadStatus('error');
+      return;
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerInfo.email)) {
+      setMessage('Please enter a valid email address.');
+      setUploadStatus('error');
+      return;
+    }
+    
     if (!file) {
       setMessage('Please select a file to upload.');
+      setUploadStatus('error');
       return;
     }
 
     setUploadStatus('uploading');
-    setMessage('Uploading file, please wait...');
+    setMessage('Uploading file and customer information, please wait...');
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('orderId', demoOrderId); // Attach order ID for server-side processing
+    formData.append('orderId', demoOrderId);
+    formData.append('customerName', customerInfo.name);
+    formData.append('customerEmail', customerInfo.email);
+    formData.append('customerPhone', customerInfo.phone);
+    formData.append('customerNotes', customerInfo.notes);
 
     try {
       // Calls the secure API route you placed at web/app/api/upload-file/route.ts
@@ -76,9 +110,75 @@ export default function FileUploaderPage() {
           <Printer className="w-8 h-8 text-indigo-600 mr-3" />
           <h1 className="text-3xl font-bold text-gray-900">Artwork Submission</h1>
         </div>
-        <p className="text-lg text-gray-700 mb-6">
+        <p className="text-lg text-gray-700 mb-8">
           Upload the final artwork file for your order (<span className="font-mono text-sm text-indigo-600 font-semibold">{demoOrderId}</span>). Please ensure your file meets our print specifications.
         </p>
+
+        {/* Customer Information Form */}
+        <div className="mb-8 space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Contact Information</h2>
+          
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              Full Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={customerInfo.name}
+              onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="John Doe"
+              required
+              disabled={uploadStatus === 'success'}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={customerInfo.email}
+              onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="john@example.com"
+              required
+              disabled={uploadStatus === 'success'}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              value={customerInfo.phone}
+              onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="+1 (555) 123-4567"
+              disabled={uploadStatus === 'success'}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+              Additional Notes / Special Instructions
+            </label>
+            <textarea
+              id="notes"
+              value={customerInfo.notes}
+              onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 h-24 resize-none"
+              placeholder="Any special requirements or instructions for your print job..."
+              disabled={uploadStatus === 'success'}
+            />
+          </div>
+        </div>
 
         {/* File Input Area */}
         <div 
