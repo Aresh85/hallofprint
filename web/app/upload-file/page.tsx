@@ -87,8 +87,22 @@ export default function FileUploaderPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed on the server.');
+        let errorMessage = 'Upload failed on the server.';
+        
+        // Try to parse JSON error, but handle non-JSON responses
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If not JSON, check status code for common issues
+          if (response.status === 413) {
+            errorMessage = 'File too large. Maximum file size is 4 MB for uploads.';
+          } else {
+            errorMessage = `Server error (${response.status}). Please try a smaller file or contact support.`;
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       setUploadStatus('success');
@@ -98,7 +112,7 @@ export default function FileUploaderPage() {
     } catch (error: any) {
       console.error('Upload error:', error);
       setUploadStatus('error');
-      setMessage(`Upload failed: ${error.message}. Please check file type and size.`);
+      setMessage(`Upload failed: ${error.message}`);
     }
   };
 
