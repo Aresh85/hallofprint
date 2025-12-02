@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
         },
         body: JSON.stringify({
           from: 'Hall of Prints <hello@urkaisolue.resend.app>',
-          to: ['a1@inteeka.com'],
+          to: ['a1@urkaisolue.resend.app'],
           subject: `New Artwork Submission - ${customerName}`,
           html: `
             <h2>New Artwork Submission Received</h2>
