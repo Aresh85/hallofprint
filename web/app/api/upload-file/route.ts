@@ -2,14 +2,6 @@ import { NextResponse, NextRequest } from 'next/server';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 
-// IMPORTANT: This configuration tells Next.js NOT to parse the request body
-// as JSON, allowing us to handle raw file data (FormData).
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 export async function POST(req: NextRequest) {
   // 1. Check for valid method
   if (req.method !== 'POST') {

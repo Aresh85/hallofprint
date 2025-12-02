@@ -3,16 +3,8 @@ import Stripe from 'stripe';
 
 // Initialize Stripe client (uses STRIPE_SECRET_KEY from .env.local)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-11-17.clover',
 });
-
-// IMPORTANT: Webhook handlers need the raw request body to verify the signature.
-// This is required by Next.js configuration.
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 // Helper function to read the raw body from the incoming request
 async function getRawBody(req: NextRequest): Promise<Buffer> {
