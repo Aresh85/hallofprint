@@ -23,7 +23,7 @@ interface CartContextType {
   itemCount: number;
   cartTotal: number;
   addToCart: (item: Omit<CartItem, 'id'>) => void;
-  // We'll add update/remove functions later
+  removeFromCart: (id: string) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -54,8 +54,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     console.log('Item added to cart:', newItem);
   };
 
+  const removeFromCart = (id: string) => {
+    setCart(prevCart => prevCart.filter(item => item.id !== id));
+    console.log('Item removed from cart:', id);
+  };
+
   return (
-    <CartContext.Provider value={{ cart, itemCount, cartTotal, addToCart }}>
+    <CartContext.Provider value={{ cart, itemCount, cartTotal, addToCart, removeFromCart }}>
       {children}
     </CartContext.Provider>
   );
