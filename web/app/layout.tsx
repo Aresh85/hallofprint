@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
 import { CartProvider } from "../context/CartContext";
-import MiniCart from "../components/Layout/MiniCart";
+import Header from "../components/Layout/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,20 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <CartProvider>
-          {/* Header with MiniCart */}
-          <header className="bg-indigo-700 shadow-lg sticky top-0 z-50">
-            <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-              <Link href="/" className="text-2xl font-bold text-white hover:text-indigo-200 transition-colors">
-                Hall of Prints
-              </Link>
-              <nav className="flex items-center gap-6">
-                <Link href="/products" className="text-white hover:text-indigo-200 transition-colors font-medium">
-                  Products
-                </Link>
-                <MiniCart />
-              </nav>
-            </div>
-          </header>
+          <Header />
           {children}
         </CartProvider>
       </body>
