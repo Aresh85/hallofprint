@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "../context/CartContext";
 import Header from "../components/Layout/Header";
 import Footer from "../components/Layout/Footer";
+import CookieConsent from "../components/Layout/CookieConsent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
+            <CookieConsent />
           </div>
         </CartProvider>
       </body>

@@ -6,13 +6,13 @@ import CheckoutButton from '../../components/Checkout/CheckoutButton';
 import { ShoppingCart, XCircle, ArrowLeft, Trash2, Lock, Truck, CheckCircle, Package } from 'lucide-react';
 
 // Helper to format currency
-const formatCurrency = (amount: number): string => `$${amount.toFixed(2)}`;
+const formatCurrency = (amount: number): string => `£${amount.toFixed(2)}`;
 
 export default function CartPage() {
   const { cart, cartTotal, itemCount, removeFromCart } = useCart();
 
   // Calculate savings or free shipping threshold
-  const freeShippingThreshold = 100;
+  const freeShippingThreshold = 195;
   const remaining = freeShippingThreshold - cartTotal;
 
   return (
@@ -250,7 +250,7 @@ export default function CartPage() {
                     Have questions about your order? Our team is here to help!
                   </p>
                   <a 
-                    href="mailto:aresh@inteeka.com"
+                    href="mailto:support@hallofprint.com"
                     className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                   >
                     Contact Support →

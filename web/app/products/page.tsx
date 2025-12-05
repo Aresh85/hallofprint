@@ -138,7 +138,7 @@ export default async function ProductListingPage() {
                           <div>
                             <span className="text-sm text-gray-500">From</span>
                             <p className="text-2xl font-bold text-indigo-600">
-                              ${product.basePrice.toFixed(2)}
+                              £{product.basePrice.toFixed(2)}
                             </p>
                           </div>
                         )}

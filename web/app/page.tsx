@@ -33,7 +33,7 @@ export default function Home() {
             <FileText className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-gray-800 mb-3">Request a Quote</h2>
             <p className="text-gray-600 mb-5">
-              Need a specialized or large-volume print job? We're here to help.
+              Need a specialised or large-volume print job? We're here to help.
             </p>
             <Link 
               href="/products" 

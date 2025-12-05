@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
 
         return {
             price_data: {
-                currency: 'usd',
+                currency: 'gbp', // Changed from 'usd' to 'gbp' for British Pounds
                 product_data: {
                     name: item.productName,
                     description: description,

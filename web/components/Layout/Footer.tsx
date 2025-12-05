@@ -59,33 +59,33 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Products */}
+          {/* Company */}
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">Products</h3>
+            <h3 className="text-white font-semibold text-lg mb-4">Company</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/products" className="text-sm hover:text-indigo-400 transition-colors">
-                  All Products
+                <Link href="/about-us" className="text-sm hover:text-indigo-400 transition-colors">
+                  About Us
                 </Link>
               </li>
               <li>
                 <Link href="/products" className="text-sm hover:text-indigo-400 transition-colors">
-                  Banners & Signs
+                  Products
                 </Link>
               </li>
               <li>
-                <Link href="/products" className="text-sm hover:text-indigo-400 transition-colors">
-                  Business Cards
+                <Link href="/hall-print-guarantee" className="text-sm hover:text-indigo-400 transition-colors">
+                  Hall of Print Guarantee
                 </Link>
               </li>
               <li>
-                <Link href="/products" className="text-sm hover:text-indigo-400 transition-colors">
-                  Marketing Materials
+                <Link href="/lowest-price-promise" className="text-sm hover:text-indigo-400 transition-colors">
+                  Lowest Price Promise
                 </Link>
               </li>
               <li>
-                <Link href="/products" className="text-sm hover:text-indigo-400 transition-colors">
-                  Custom Prints
+                <Link href="/price-match-request" className="text-sm hover:text-indigo-400 transition-colors">
+                  Price Match Request
                 </Link>
               </li>
             </ul>
@@ -96,6 +96,16 @@ export default function Footer() {
             <h3 className="text-white font-semibold text-lg mb-4">Customer Service</h3>
             <ul className="space-y-3">
               <li>
+                <Link href="/faqs" className="text-sm hover:text-indigo-400 transition-colors">
+                  FAQs
+                </Link>
+              </li>
+              <li>
+                <Link href="/delivery" className="text-sm hover:text-indigo-400 transition-colors">
+                  Delivery & Shipping
+                </Link>
+              </li>
+              <li>
                 <Link href="/upload-file" className="text-sm hover:text-indigo-400 transition-colors">
                   Upload Artwork
                 </Link>
@@ -103,16 +113,6 @@ export default function Footer() {
               <li>
                 <Link href="/cart" className="text-sm hover:text-indigo-400 transition-colors">
                   View Cart
-                </Link>
-              </li>
-              <li>
-                <Link href="/" className="text-sm hover:text-indigo-400 transition-colors">
-                  FAQs
-                </Link>
-              </li>
-              <li>
-                <Link href="/" className="text-sm hover:text-indigo-400 transition-colors">
-                  Shipping Info
                 </Link>
               </li>
               <li>
@@ -131,17 +131,8 @@ export default function Footer() {
                 <Mail className="w-5 h-5 text-indigo-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-white">Email</p>
-                  <a href="mailto:aresh@inteeka.com" className="hover:text-indigo-400 transition-colors">
-                    aresh@inteeka.com
-                  </a>
-                </div>
-              </li>
-              <li className="flex items-start space-x-3 text-sm">
-                <Phone className="w-5 h-5 text-indigo-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-white">Phone</p>
-                  <a href="tel:+447896993298" className="hover:text-indigo-400 transition-colors">
-                    +44 7896 993 298
+                  <a href="mailto:support@hallofprint.com" className="hover:text-indigo-400 transition-colors">
+                    support@hallofprint.com
                   </a>
                 </div>
               </li>
@@ -149,7 +140,7 @@ export default function Footer() {
                 <MapPin className="w-5 h-5 text-indigo-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-white">Location</p>
-                  <p>London, United Kingdom</p>
+                  <p>9 Cranleigh Mews, London SW11 2QL</p>
                 </div>
               </li>
             </ul>
@@ -168,16 +159,16 @@ export default function Footer() {
             
             {/* Legal Links */}
             <div className="flex flex-wrap justify-center gap-6 text-sm">
-              <Link href="/" className="text-gray-400 hover:text-indigo-400 transition-colors">
+              <Link href="/privacy-policy" className="text-gray-400 hover:text-indigo-400 transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="/" className="text-gray-400 hover:text-indigo-400 transition-colors">
+              <Link href="/terms-and-conditions" className="text-gray-400 hover:text-indigo-400 transition-colors">
                 Terms of Service
               </Link>
-              <Link href="/" className="text-gray-400 hover:text-indigo-400 transition-colors">
+              <Link href="/cookie-policy" className="text-gray-400 hover:text-indigo-400 transition-colors">
                 Cookie Policy
               </Link>
-              <Link href="/" className="text-gray-400 hover:text-indigo-400 transition-colors">
+              <Link href="/accessibility" className="text-gray-400 hover:text-indigo-400 transition-colors">
                 Accessibility
               </Link>
             </div>

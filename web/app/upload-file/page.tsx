@@ -1,29 +1,72 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { UploadCloud, FileText, Loader2, CheckCircle, XCircle, Printer } from 'lucide-react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
-// Define expected file types for print production
-const ACCEPTED_FILE_TYPES = 'application/pdf,image/tiff,application/postscript,.ai,.psd';
-const MAX_FILE_SIZE_MB = 100; // Common limit for web uploads
+const ACCEPTED_FILE_TYPES = 'application/pdf,image/tiff,application/postscript,.ai,.psd,image/*';
+const MAX_FILE_SIZE_MB = 10; // Web3Forms limit
+const WEB3FORMS_ACCESS_KEY = 'e5049723-d355-43a7-8a11-63f1332604d9';
 
 export default function FileUploaderPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userOrders, setUserOrders] = useState<any[]>([]);
+  const [selectedOrderId, setSelectedOrderId] = useState('');
   
-  // Customer information state
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
     phone: '',
-    notes: ''
+    notes: '',
+    hasExistingOrder: 'no'
   });
-  
-  // NOTE: In a production app, you would fetch the Order ID from 
-  // URL search params (e.g., from the /success page redirect) or a secure session.
-  const demoOrderId = 'HP-12345';
+
+  useEffect(() => {
+    checkUserAndLoadOrders();
+  }, []);
+
+  const checkUserAndLoadOrders = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        setIsLoggedIn(true);
+        
+        // Get user profile
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('full_name, email')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          setCustomerInfo(prev => ({
+            ...prev,
+            name: profile.full_name || '',
+            email: user.email || profile.email || ''
+          }));
+        }
+
+        // Load user's active orders
+        const { data: orders } = await supabase
+          .from('orders')
+          .select('id, order_number, created_at, total, status')
+          .eq('user_id', user.id)
+          .in('status', ['pending', 'processing'])
+          .order('created_at', { ascending: false });
+
+        if (orders) {
+          setUserOrders(orders);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -32,7 +75,7 @@ export default function FileUploaderPage() {
     
     if (selectedFile) {
       if (selectedFile.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        setMessage(`Error: File size exceeds ${MAX_FILE_SIZE_MB}MB. Please try a compressed ZIP file.`);
+        setMessage(`Error: File size exceeds ${MAX_FILE_SIZE_MB}MB. Please compress your file.`);
         setFile(null);
         return;
       }
@@ -54,7 +97,6 @@ export default function FileUploaderPage() {
       return;
     }
     
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(customerInfo.email)) {
       setMessage('Please enter a valid email address.');
@@ -68,51 +110,121 @@ export default function FileUploaderPage() {
       return;
     }
 
+    // Check if they have an existing order selected
+    if (customerInfo.hasExistingOrder === 'yes' && !selectedOrderId) {
+      setMessage('Please select an order from the dropdown.');
+      setUploadStatus('error');
+      return;
+    }
+
     setUploadStatus('uploading');
-    setMessage('Uploading file and customer information, please wait...');
+    setMessage('Submitting artwork, please wait...');
 
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('orderId', demoOrderId);
-    formData.append('customerName', customerInfo.name);
-    formData.append('customerEmail', customerInfo.email);
-    formData.append('customerPhone', customerInfo.phone);
-    formData.append('customerNotes', customerInfo.notes);
+    
+    // Web3Forms required fields
+    formData.append('access_key', WEB3FORMS_ACCESS_KEY);
+    formData.append('name', customerInfo.name);
+    formData.append('email', customerInfo.email);
+    formData.append('phone', customerInfo.phone);
+    formData.append('message', customerInfo.notes || 'Artwork submission');
+    
+    // Custom fields
+    formData.append('has_existing_order', customerInfo.hasExistingOrder);
+    formData.append('order_id', selectedOrderId || 'No existing order');
+    formData.append('file_name', file.name);
+    formData.append('file_size', `${(file.size / 1024 / 1024).toFixed(2)} MB`);
+    
+    // Attach file
+    formData.append('attachment', file);
+    
+    // Redirect URL after success
+    formData.append('redirect', 'false');
 
     try {
-      // Calls the secure API route you placed at web/app/api/upload-file/route.ts
-      const response = await fetch('/api/upload-file', {
+      const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) {
-        let errorMessage = 'Upload failed on the server.';
+      const data = await response.json();
+
+      console.log('🔍 Web3Forms Response:', data);
+      console.log('🔗 File URL from Web3Forms:', data.file_url);
+
+      if (data.success) {
+        // Get the file URL from Web3Forms response
+        const fileUrl = data.file_url || null;
         
-        // Try to parse JSON error, but handle non-JSON responses
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          // If not JSON, check status code for common issues
-          if (response.status === 413) {
-            errorMessage = 'File too large. Maximum file size is 4 MB for uploads.';
-          } else {
-            errorMessage = `Server error (${response.status}). Please try a smaller file or contact support.`;
-          }
+        console.log('💾 Saving to database with fileUrl:', fileUrl);
+        
+        // If they linked to an existing order, save to database
+        if (selectedOrderId && isLoggedIn) {
+          await saveArtworkToOrder(selectedOrderId, file.name, fileUrl);
+        } else {
+          // Save as standalone artwork submission
+          await saveStandaloneArtwork(fileUrl);
         }
-        
-        throw new Error(errorMessage);
+
+        setUploadStatus('success');
+        setMessage(`Success! Your artwork "${file.name}" has been submitted. We'll review it shortly and contact you at ${customerInfo.email}.`);
+      } else {
+        throw new Error(data.message || 'Submission failed');
       }
-
-      setUploadStatus('success');
-      setMessage(`Success! File "${file.name}" linked to Order ${demoOrderId}. We will review your artwork shortly.`);
-      // No need to clear file input here, as we show success message.
-
     } catch (error: any) {
       console.error('Upload error:', error);
       setUploadStatus('error');
       setMessage(`Upload failed: ${error.message}`);
+    }
+  };
+
+  const saveArtworkToOrder = async (orderId: string, fileName: string, fileUrl: string | null) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          artwork_received: true,
+          artwork_url: fileName,
+          artwork_file_url: fileUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving artwork to order:', error);
+    }
+  };
+
+  const saveStandaloneArtwork = async (fileUrl: string | null) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { data, error } = await supabase
+        .from('artwork_submissions')
+        .insert({
+          customer_name: customerInfo.name,
+          customer_email: customerInfo.email,
+          customer_phone: customerInfo.phone || null,
+          notes: customerInfo.notes || null,
+          file_name: file?.name,
+          file_size: file?.size,
+          file_url: fileUrl,
+          user_id: user?.id || null,
+          status: 'pending'
+        });
+
+      if (error) {
+        console.error('Supabase error details:', error);
+        throw error;
+      }
+      
+      console.log('✅ Artwork saved successfully:', data);
+    } catch (error: any) {
+      console.error('Error saving standalone artwork:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error details:', error?.details);
+      console.error('Error hint:', error?.hint);
     }
   };
 
@@ -125,7 +237,7 @@ export default function FileUploaderPage() {
           <h1 className="text-3xl font-bold text-gray-900">Artwork Submission</h1>
         </div>
         <p className="text-lg text-gray-700 mb-8">
-          Upload the final artwork file for your order (<span className="font-mono text-sm text-indigo-600 font-semibold">{demoOrderId}</span>). Please ensure your file meets our print specifications.
+          Upload your artwork file for printing. We accept PDF, AI, PSD, TIFF, and common image formats.
         </p>
 
         {/* Customer Information Form */}
@@ -174,10 +286,67 @@ export default function FileUploaderPage() {
               value={customerInfo.phone}
               onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="+1 (555) 123-4567"
+              placeholder="+44 7123 456789"
               disabled={uploadStatus === 'success'}
             />
           </div>
+
+          {/* Order Selection for Logged-in Users */}
+          {isLoggedIn && userOrders.length > 0 && (
+            <div className="border-t border-gray-200 pt-4 mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Do you have an existing order?
+              </label>
+              <div className="space-y-3">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="hasOrder"
+                    value="yes"
+                    checked={customerInfo.hasExistingOrder === 'yes'}
+                    onChange={(e) => setCustomerInfo({ ...customerInfo, hasExistingOrder: 'yes' })}
+                    className="mr-2"
+                    disabled={uploadStatus === 'success'}
+                  />
+                  <span>Yes, link to my existing order</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="hasOrder"
+                    value="no"
+                    checked={customerInfo.hasExistingOrder === 'no'}
+                    onChange={(e) => setCustomerInfo({ ...customerInfo, hasExistingOrder: 'no' })}
+                    className="mr-2"
+                    disabled={uploadStatus === 'success'}
+                  />
+                  <span>No, this is a new submission</span>
+                </label>
+              </div>
+
+              {customerInfo.hasExistingOrder === 'yes' && (
+                <div className="mt-4">
+                  <label htmlFor="order" className="block text-sm font-medium text-gray-700 mb-1">
+                    Select Your Order <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="order"
+                    value={selectedOrderId}
+                    onChange={(e) => setSelectedOrderId(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    disabled={uploadStatus === 'success'}
+                  >
+                    <option value="">Choose an order...</option>
+                    {userOrders.map((order) => (
+                      <option key={order.id} value={order.id}>
+                        Order #{order.order_number} - £{order.total.toFixed(2)} ({order.status})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
 
           <div>
             <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
@@ -214,7 +383,7 @@ export default function FileUploaderPage() {
               Drag and drop your file here, or click to browse.
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Max file size: {MAX_FILE_SIZE_MB}MB. Accepted formats: PDF, AI, PSD, TIFF.
+              Max file size: {MAX_FILE_SIZE_MB}MB. Accepted formats: PDF, AI, PSD, TIFF, Images.
             </p>
           </div>
         </div>
@@ -255,20 +424,25 @@ export default function FileUploaderPage() {
 
         {/* Message Area */}
         {message && (
-          <div className={`mt-4 p-4 rounded-lg flex items-center ${
+          <div className={`mt-4 p-4 rounded-lg flex items-start ${
             uploadStatus === 'success' ? 'bg-green-100 text-green-700' : 
             uploadStatus === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
           }`}>
-            {uploadStatus === 'success' ? <CheckCircle className="w-5 h-5 mr-2" /> : 
-             uploadStatus === 'error' ? <XCircle className="w-5 h-5 mr-2" /> : <Loader2 className="w-5 h-5 mr-2" />}
-            {message}
+            {uploadStatus === 'success' ? <CheckCircle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" /> : 
+             uploadStatus === 'error' ? <XCircle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" /> : <Loader2 className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />}
+            <span className="text-sm">{message}</span>
           </div>
         )}
 
         <div className="mt-8 text-center">
-            <Link href="/" className="text-indigo-600 hover:text-indigo-800 font-medium">
-                Back to Homepage
-            </Link>
+          {!isLoggedIn && (
+            <p className="text-sm text-gray-600 mb-2">
+              Have an account? <Link href="/login" className="text-indigo-600 hover:text-indigo-800 font-medium">Sign in</Link> to link artwork to your orders.
+            </p>
+          )}
+          <Link href="/" className="text-indigo-600 hover:text-indigo-800 font-medium">
+            Back to Homepage
+          </Link>
         </div>
       </div>
     </div>

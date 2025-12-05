@@ -1,13 +1,52 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, ShoppingCart, Printer } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Menu, X, ShoppingCart, Printer, User, LogOut, Settings } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { supabase } from '@/lib/auth';
 
 export default function Header() {
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [userName, setUserName] = useState<string>('');
   const { itemCount } = useCart();
+
+  useEffect(() => {
+    checkUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkUser();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+
+    if (user) {
+      // Get user profile for name
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      setUserName(profile?.full_name || user.email?.split('@')[0] || 'User');
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsUserMenuOpen(false);
+    router.push('/');
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -49,14 +88,86 @@ export default function Header() {
                   href={item.href}
                   className="relative text-white hover:text-indigo-200 transition-colors font-medium"
                 >
-                  {item.name}
-                  {item.badge && item.badge > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-indigo-700">
-                      {item.badge}
-                    </span>
+                  {item.name === 'Cart' ? (
+                    <>
+                      <ShoppingCart className="w-6 h-6" />
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-indigo-700">
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {item.name}
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-indigo-700">
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
                   )}
                 </Link>
               ))}
+
+              {/* User Menu */}
+              {user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center space-x-2 text-white hover:text-indigo-200 transition-colors font-medium"
+                  >
+                    <div className="bg-white rounded-full p-1.5">
+                      <User className="w-5 h-5 text-indigo-700" />
+                    </div>
+                    <span className="hidden lg:inline">{userName}</span>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isUserMenuOpen && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-10"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-20">
+                        <Link
+                          href="/account"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-indigo-50 transition-colors"
+                        >
+                          <User className="w-4 h-4" />
+                          <span>My Account</span>
+                        </Link>
+                        <Link
+                          href="/account/orders"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-indigo-50 transition-colors"
+                        >
+                          <Settings className="w-4 h-4" />
+                          <span>Orders</span>
+                        </Link>
+                        <hr className="my-2" />
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center space-x-2 bg-white text-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors font-semibold"
+                >
+                  <User className="w-5 h-5" />
+                  <span>Login</span>
+                </Link>
+              )}
             </div>
 
             {/* Mobile: Cart Icon + Menu Button */}
@@ -143,12 +254,70 @@ export default function Header() {
                   </Link>
                 </li>
               ))}
+
+              {/* User Section in Mobile Menu */}
+              {user && (
+                <>
+                  <li className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="px-4 py-2">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Account</p>
+                    </div>
+                  </li>
+                  <li>
+                    <Link
+                      href="/account"
+                      onClick={closeMobileMenu}
+                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                    >
+                      <User className="w-5 h-5" />
+                      <span>My Account</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/account/orders"
+                      onClick={closeMobileMenu}
+                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                    >
+                      <Settings className="w-5 h-5" />
+                      <span>My Orders</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        closeMobileMenu();
+                      }}
+                      className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </li>
+                </>
+              )}
             </ul>
           </nav>
 
           {/* Mobile Menu Footer */}
           <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <p className="text-xs text-gray-500 text-center">
+            {!user ? (
+              <Link
+                href="/login"
+                onClick={closeMobileMenu}
+                className="flex items-center justify-center space-x-2 bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-semibold w-full"
+              >
+                <User className="w-5 h-5" />
+                <span>Login / Sign Up</span>
+              </Link>
+            ) : (
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-700 mb-1">{userName}</p>
+                <p className="text-xs text-gray-500">{user.email}</p>
+              </div>
+            )}
+            <p className="text-xs text-gray-500 text-center mt-4">
               © 2025 Hall of Prints
             </p>
           </div>

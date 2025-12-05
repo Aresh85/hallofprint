@@ -157,7 +157,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 ) : (
                   <>
                     <span className="text-3xl font-bold text-indigo-600">
-                      ${product.basePrice.toFixed(2)}
+                      £{product.basePrice.toFixed(2)}
                     </span>
                     <span className="text-gray-500">Starting price</span>
                   </>
