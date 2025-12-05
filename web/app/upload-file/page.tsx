@@ -6,8 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 const ACCEPTED_FILE_TYPES = 'application/pdf,image/tiff,application/postscript,.ai,.psd,image/*';
-const MAX_FILE_SIZE_MB = 10; // Web3Forms limit
-const WEB3FORMS_ACCESS_KEY = 'e5049723-d355-43a7-8a11-63f1332604d9';
+const MAX_FILE_SIZE_MB = 50; // Supabase supports larger files
 
 export default function FileUploaderPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -118,81 +117,122 @@ export default function FileUploaderPage() {
     }
 
     setUploadStatus('uploading');
-    setMessage('Submitting artwork, please wait...');
-
-    const formData = new FormData();
-    
-    // Web3Forms required fields
-    formData.append('access_key', WEB3FORMS_ACCESS_KEY);
-    formData.append('name', customerInfo.name);
-    formData.append('email', customerInfo.email);
-    formData.append('phone', customerInfo.phone);
-    formData.append('message', customerInfo.notes || 'Artwork submission');
-    
-    // Custom fields
-    formData.append('has_existing_order', customerInfo.hasExistingOrder);
-    formData.append('order_id', selectedOrderId || 'No existing order');
-    formData.append('file_name', file.name);
-    formData.append('file_size', `${(file.size / 1024 / 1024).toFixed(2)} MB`);
-    
-    // Attach file
-    formData.append('attachment', file);
-    
-    // Redirect URL after success
-    formData.append('redirect', 'false');
+    setMessage('Uploading artwork to secure storage...');
 
     try {
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        body: formData,
-      });
+      // Generate unique filename
+      const timestamp = Date.now();
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const storagePath = `artwork-submissions/${timestamp}-${sanitizedFileName}`;
 
-      const data = await response.json();
+      console.log('📤 Uploading file to Supabase Storage:', storagePath);
 
-      console.log('🔍 Web3Forms Response:', data);
-      console.log('🔗 File URL from Web3Forms:', data.file_url);
+      // Upload file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('artwork-files')
+        .upload(storagePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (data.success) {
-        // Get the file URL from Web3Forms response
-        const fileUrl = data.file_url || null;
-        
-        console.log('💾 Saving to database with fileUrl:', fileUrl);
-        
-        // If they linked to an existing order, save to database
-        if (selectedOrderId && isLoggedIn) {
-          await saveArtworkToOrder(selectedOrderId, file.name, fileUrl);
-        } else {
-          // Save as standalone artwork submission
-          await saveStandaloneArtwork(fileUrl);
-        }
-
-        setUploadStatus('success');
-        setMessage(`Success! Your artwork "${file.name}" has been submitted. We'll review it shortly and contact you at ${customerInfo.email}.`);
-      } else {
-        throw new Error(data.message || 'Submission failed');
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(uploadError.message);
       }
+
+      console.log('✅ File uploaded successfully:', uploadData);
+
+      // Get public URL for the uploaded file
+      const { data: urlData } = supabase.storage
+        .from('artwork-files')
+        .getPublicUrl(storagePath);
+
+      const fileUrl = urlData.publicUrl;
+      console.log('🔗 Public URL:', fileUrl);
+
+      // Save to database
+      if (selectedOrderId && isLoggedIn) {
+        await saveArtworkToOrder(selectedOrderId, file.name, fileUrl);
+      } else {
+        await saveStandaloneArtwork(fileUrl);
+      }
+
+      setUploadStatus('success');
+      setMessage(`Success! Your artwork "${file.name}" has been uploaded securely. We'll review it shortly and contact you at ${customerInfo.email}.`);
+      
     } catch (error: any) {
       console.error('Upload error:', error);
       setUploadStatus('error');
-      setMessage(`Upload failed: ${error.message}`);
+      setMessage(`Upload failed: ${error.message}. Please try again or contact support.`);
     }
   };
 
   const saveArtworkToOrder = async (orderId: string, fileName: string, fileUrl: string | null) => {
     try {
+      // Check if this is an update (order already has artwork)
+      const { data: existingOrder } = await supabase
+        .from('orders')
+        .select('artwork_file_url, artwork_url')
+        .eq('id', orderId)
+        .single();
+
+      const isUpdate = existingOrder?.artwork_file_url ? true : false;
+
+      // Update the order with new file
       const { error } = await supabase
         .from('orders')
         .update({
           artwork_received: true,
           artwork_url: fileName,
           artwork_file_url: fileUrl,
+          artwork_updated: isUpdate,
+          artwork_updated_at: isUpdate ? new Date().toISOString() : null,
           updated_at: new Date().toISOString()
         })
         .eq('id', orderId);
 
       if (error) throw error;
+
+      // Send email notification if this is an update
+      if (isUpdate) {
+        await sendArtworkUpdateEmail(orderId, fileName);
+      }
     } catch (error) {
       console.error('Error saving artwork to order:', error);
+    }
+  };
+
+  const sendArtworkUpdateEmail = async (orderId: string, fileName: string) => {
+    try {
+      // Get order details
+      const { data: order } = await supabase
+        .from('orders')
+        .select('order_number, user_id')
+        .eq('id', orderId)
+        .single();
+
+      if (!order) return;
+
+      // Get user email
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('full_name, email')
+        .eq('id', order.user_id)
+        .single();
+
+      // Send email via your API endpoint
+      await fetch('/api/send-artwork-update-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderNumber: order.order_number,
+          fileName: fileName,
+          customerName: profile?.full_name,
+          customerEmail: profile?.email
+        })
+      });
+    } catch (error) {
+      console.error('Error sending update email:', error);
     }
   };
 

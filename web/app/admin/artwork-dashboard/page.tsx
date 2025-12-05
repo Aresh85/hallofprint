@@ -381,24 +381,53 @@ export default function ArtworkDashboard() {
                   </div>
                 </div>
 
-                {/* FILE ACCESS INFO */}
-                <div className="mt-4 pt-4 border-t bg-blue-50 p-4 rounded-lg">
-                  <p className="text-xs font-semibold text-blue-800 mb-2">📎 ARTWORK FILE</p>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-900 font-semibold">{submission.file_name}</p>
-                    <div className="bg-white p-3 rounded border border-blue-200">
-                      <p className="text-xs font-semibold text-blue-900 mb-2">📧 File Location:</p>
-                      <ul className="text-xs text-gray-700 space-y-1 ml-4 list-disc">
-                        <li>Check your <strong>email inbox</strong> for Web3Forms notification</li>
-                        <li>File is attached to email sent to: <strong>{submission.customer_email}</strong></li>
-                        <li>Or access via <a href="https://web3forms.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Web3Forms Dashboard</a></li>
-                      </ul>
+                {/* FILE DOWNLOAD */}
+                {submission.file_url ? (
+                  <div className="mt-4 pt-4 border-t bg-green-50 p-4 rounded-lg">
+                    <p className="text-xs font-semibold text-green-800 mb-3">📎 ARTWORK FILE</p>
+                    <div className="space-y-3">
+                      <a 
+                        href={submission.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-800 font-semibold underline block"
+                      >
+                        {submission.file_name}
+                      </a>
+                      <div className="flex gap-2">
+                        <a 
+                          href={submission.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          <FileImage className="w-4 h-4 mr-2" />
+                          Download File
+                        </a>
+                        <a 
+                          href={submission.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View in Browser
+                        </a>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        📆 Submitted: {formatDate(submission.created_at)}
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-500">
-                      📆 Submitted: {formatDate(submission.created_at)}
+                  </div>
+                ) : (
+                  <div className="mt-4 pt-4 border-t bg-yellow-50 p-4 rounded-lg">
+                    <p className="text-xs font-semibold text-yellow-800 mb-2">📎 FILE NOT AVAILABLE</p>
+                    <p className="text-xs text-gray-700">
+                      This submission was created before direct file storage was implemented. 
+                      Contact customer at: <strong>{submission.customer_email}</strong>
                     </p>
                   </div>
-                </div>
+                )}
 
                 {/* Submission Details */}
                 <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
