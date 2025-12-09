@@ -60,34 +60,53 @@ export async function POST(req: NextRequest) {
           expand: ['data.price.product']
         });
 
-        // Calculate total and prepare items
-        const total = (session.amount_total || 0) / 100; // Convert cents to pounds
-        const items = lineItems.data.map(item => ({
-          name: (item.price?.product as any)?.name || 'Product',
-          quantity: item.quantity || 1,
-          price: (item.price?.unit_amount || 0) / 100,
-          description: item.description || ''
-        }));
+        // Calculate totals
+        const subtotal = (session.amount_subtotal || 0) / 100;
+        const tax = (session.total_details?.amount_tax || 0) / 100;
+        const total = (session.amount_total || 0) / 100;
 
         // Generate order number
         const orderNumber = `HP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+        // Get shipping details from session
+        const shippingAddress = (session as any).shipping_details?.address || session.customer_details?.address;
 
         // Create order in Supabase
         const { data: order, error: orderError } = await supabase
           .from('orders')
           .insert({
             order_number: orderNumber,
-            stripe_session_id: session.id,
-            stripe_payment_intent: session.payment_intent as string,
-            customer_email: session.customer_details?.email || session.customer_email,
-            customer_name: session.customer_details?.name || 'Customer',
-            items: items,
-            total: total,
+            user_id: session.metadata?.userId || null,
+            guest_email: session.metadata?.userId ? null : (session.customer_details?.email || session.customer_email),
             status: 'pending',
             payment_status: 'paid',
-            user_id: session.metadata?.userId || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            
+            // Customer Info
+            customer_name: session.customer_details?.name || session.metadata?.customerName || 'Customer',
+            customer_email: session.customer_details?.email || session.customer_email || '',
+            customer_phone: session.customer_details?.phone || '',
+            
+            // Shipping Address
+            shipping_address_line1: shippingAddress?.line1 || session.metadata?.address_line1 || '',
+            shipping_address_line2: shippingAddress?.line2 || session.metadata?.address_line2 || '',
+            shipping_city: shippingAddress?.city || session.metadata?.city || '',
+            shipping_county: shippingAddress?.state || session.metadata?.county || '',
+            shipping_postcode: shippingAddress?.postal_code || session.metadata?.postcode || '',
+            shipping_country: shippingAddress?.country || 'United Kingdom',
+            
+            // Order Details
+            subtotal: subtotal,
+            shipping_cost: 0,
+            tax: tax,
+            total: total,
+            currency: (session.currency || 'gbp').toUpperCase(),
+            
+            // Payment Info
+            stripe_payment_intent_id: session.payment_intent as string,
+            payment_method: session.payment_method_types?.[0] || 'card',
+            
+            // Notes
+            customer_notes: session.metadata?.notes || null,
           })
           .select()
           .single();
@@ -97,7 +116,33 @@ export async function POST(req: NextRequest) {
           throw orderError;
         }
 
-        console.log(`✅ Order created successfully: ${orderNumber}`, order);
+        console.log(`✅ Order created: ${orderNumber}`);
+
+        // Create order items in separate table
+        const orderItems = lineItems.data.map(item => {
+          const unitPrice = (item.price?.unit_amount || 0) / 100;
+          const quantity = item.quantity || 1;
+          return {
+            order_id: order.id,
+            product_name: (item.price?.product as any)?.name || item.description || 'Product',
+            product_slug: (item.price?.product as any)?.metadata?.slug || null,
+            quantity: quantity,
+            unit_price: unitPrice,
+            total_price: unitPrice * quantity,
+            options: (item.price?.product as any)?.metadata || null,
+          };
+        });
+
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(orderItems);
+
+        if (itemsError) {
+          console.error('❌ Error creating order items:', itemsError);
+          throw itemsError;
+        }
+
+        console.log(`✅ Order items created for ${orderNumber}`);
 
         // TODO: Send confirmation email to customer
         // await sendOrderConfirmationEmail(order);
