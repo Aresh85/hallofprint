@@ -1,10 +1,17 @@
 import { NextResponse, NextRequest } from 'next/server';
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 
 // Initialize Stripe client (uses STRIPE_SECRET_KEY from .env.local)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-11-17.clover',
 });
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Helper function to read the raw body from the incoming request
 async function getRawBody(req: NextRequest): Promise<Buffer> {
@@ -47,20 +54,58 @@ export async function POST(req: NextRequest) {
       
       console.log(`✅ Payment received for session: ${session.id}`);
 
-      // --- Order Fulfillment Logic (The main action) ---
-      // Here, you would perform the following actions:
-      
-      // 1. **Fetch Order Details:** Retrieve cart data or metadata attached to the session.
-      // 2. **Create Sanity Order Document:** Use the Sanity client to create a new 'order' document 
-      //    in your CMS, marking it as paid and storing the session ID and items.
-      // 3. **Clear Cart (Optional):** If the user was authenticated, you might clear their remote cart.
-      // 4. **Send Confirmation Email:** Trigger an email to the customer.
+      try {
+        // Get line items from the session
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+          expand: ['data.price.product']
+        });
 
-      // Example of logging the fulfillment status:
-      // const orderId = session.metadata?.orderId; 
-      // await sanityClient.createOrder({ stripeId: session.id, orderId, status: 'Paid' });
+        // Calculate total and prepare items
+        const total = (session.amount_total || 0) / 100; // Convert cents to pounds
+        const items = lineItems.data.map(item => ({
+          name: (item.price?.product as any)?.name || 'Product',
+          quantity: item.quantity || 1,
+          price: (item.price?.unit_amount || 0) / 100,
+          description: item.description || ''
+        }));
 
-      // For now, we only log the success.
+        // Generate order number
+        const orderNumber = `HP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+        // Create order in Supabase
+        const { data: order, error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            order_number: orderNumber,
+            stripe_session_id: session.id,
+            stripe_payment_intent: session.payment_intent as string,
+            customer_email: session.customer_details?.email || session.customer_email,
+            customer_name: session.customer_details?.name || 'Customer',
+            items: items,
+            total: total,
+            status: 'pending',
+            payment_status: 'paid',
+            user_id: session.metadata?.userId || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (orderError) {
+          console.error('❌ Error creating order:', orderError);
+          throw orderError;
+        }
+
+        console.log(`✅ Order created successfully: ${orderNumber}`, order);
+
+        // TODO: Send confirmation email to customer
+        // await sendOrderConfirmationEmail(order);
+
+      } catch (error) {
+        console.error('❌ Error in webhook handler:', error);
+        // We still return 200 to Stripe to prevent retries
+      }
       break;
 
     case 'payment_intent.succeeded':

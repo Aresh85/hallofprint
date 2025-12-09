@@ -131,6 +131,15 @@ export async function POST(req: NextRequest) {
 
     // --- 3. Create Stripe Checkout Session ---
 
+    // Get user ID from request headers (if authenticated)
+    const authHeader = req.headers.get('authorization');
+    let userId = null;
+    
+    if (authHeader?.startsWith('Bearer ')) {
+      // In a real app, you'd verify the token here
+      // For now, we'll try to extract it from the cart items metadata if available
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
@@ -139,9 +148,15 @@ export async function POST(req: NextRequest) {
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`, // Redirect back to the cart on cancel
       
-      // Optional: Store relevant Sanity IDs in metadata for webhook use
+      // Store cart items in metadata for webhook use
       metadata: {
-        // e.g., userId, customOrderId if stored in Sanity
+        userId: userId || '',
+        itemCount: cartItems.length.toString(),
+        cartData: JSON.stringify(cartItems.map(item => ({
+          name: item.productName,
+          qty: item.quantity,
+          price: item.totalPrice
+        })))
       }
     });
 
