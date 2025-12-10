@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/auth';
-import { Package, ArrowLeft, Calendar, DollarSign, Truck, ChevronDown, ChevronUp } from 'lucide-react';
+import { Package, ArrowLeft, Calendar, DollarSign, Truck, ChevronDown, ChevronUp, FileText, Upload, AlertTriangle } from 'lucide-react';
 
 type Order = {
   id: string;
