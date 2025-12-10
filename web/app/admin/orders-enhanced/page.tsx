@@ -86,6 +86,7 @@ export default function EnhancedOrdersDashboard() {
   const [sundryDescription, setSundryDescription] = useState('');
   const [sundryQuantity, setSundryQuantity] = useState(1);
   const [sundryPrice, setSundryPrice] = useState('');
+  const [sundryTaxRate, setSundryTaxRate] = useState(20);
   
   // New state for advanced features
   const [operators, setOperators] = useState<Array<{id: string, full_name: string}>>([]);
@@ -271,6 +272,7 @@ export default function EnhancedOrdersDashboard() {
       setSundryDescription('');
       setSundryQuantity(1);
       setSundryPrice('');
+      setSundryTaxRate(20);
       loadOrders();
       alert('Sundry added successfully!');
     } catch (error) {
@@ -1232,8 +1234,37 @@ export default function EnhancedOrdersDashboard() {
                 </div>
               </div>
 
-              <div className="bg-gray-100 p-3 rounded">
-                <p className="text-sm font-semibold">Total: £{(parseFloat(sundryPrice || '0') * sundryQuantity).toFixed(2)}</p>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Tax Rate (%)</label>
+                <select
+                  value={sundryTaxRate}
+                  onChange={(e) => setSundryTaxRate(parseInt(e.target.value))}
+                  className="w-full p-2 border-2 border-gray-300 rounded-lg"
+                >
+                  <option value="0">0% (No VAT)</option>
+                  <option value="5">5% (Reduced Rate)</option>
+                  <option value="20">20% (Standard VAT)</option>
+                </select>
+                <p className="text-xs text-gray-600 mt-1">Default: 20% Standard VAT</p>
+              </div>
+
+              <div className="bg-gray-100 p-4 rounded">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="font-semibold">£{(parseFloat(sundryPrice || '0') * sundryQuantity).toFixed(2)}</span>
+                  </div>
+                  {sundryTaxRate > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">VAT ({sundryTaxRate}%):</span>
+                      <span className="font-semibold">£{((parseFloat(sundryPrice || '0') * sundryQuantity * sundryTaxRate) / 100).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm font-bold border-t pt-1">
+                    <span>Total:</span>
+                    <span>£{((parseFloat(sundryPrice || '0') * sundryQuantity) * (1 + sundryTaxRate / 100)).toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
 
               <div className="flex space-x-3">
