@@ -23,6 +23,7 @@ interface Quote {
   file_urls?: string[];
   payment_required?: boolean;
   order_id?: string;
+  paid_at?: string;
 }
 
 export default function MyQuotesPage() {
@@ -187,9 +188,30 @@ export default function MyQuotesPage() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <h3 className="text-xl font-bold text-gray-900 mb-1">{quote.project_title}</h3>
-                      <p className="text-sm text-gray-600">
-                        Requested on {new Date(quote.created_at).toLocaleDateString()}
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-gray-600 flex items-center">
+                          <Clock className="w-4 h-4 mr-1" />
+                          Submitted: {new Date(quote.created_at).toLocaleString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                        {quote.paid_at && (
+                          <p className="text-sm text-green-600 font-semibold flex items-center">
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Paid: {new Date(quote.paid_at).toLocaleString('en-GB', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-semibold border-2 ${getStatusBadge(quote.status)}`}>
                       {getStatusIcon(quote.status)}
