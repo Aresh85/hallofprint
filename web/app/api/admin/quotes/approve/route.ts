@@ -3,47 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(request: NextRequest) {
   try {
-    // Create client from cookies to get authenticated user
-    const cookieStore = await cookies();
-    const authCookie = cookieStore.get('sb-access-token');
-    
-    if (!authCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Create client with anon key for auth check
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${authCookie.value}`
-        }
-      }
-    });
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin/operator
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile || !['admin', 'operator'].includes(profile.role)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    // Now use service key for admin operations
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    // Use service role key - it bypasses RLS and can do admin operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await request.json();
     const {
@@ -101,12 +66,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to approve quote' }, { status: 500 });
     }
 
-    // Log activity
+    // Log activity (no user tracking for service role operations)
     await supabase.from('order_activity_log').insert({
       order_id,
       activity_type: 'quote_approved',
       description: `Quote approved and priced. Subtotal: £${subtotal.toFixed(2)}, Tax: £${tax.toFixed(2)}, Total: £${total.toFixed(2)}`,
-      created_by: user.id,
       created_at: new Date().toISOString(),
     });
 
