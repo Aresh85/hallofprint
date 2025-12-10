@@ -9,25 +9,48 @@ import { supabase } from '@/lib/auth';
 function SuccessContent() {
   const searchParams = useSearchParams();
   const quoteId = searchParams.get('quote_id');
+  const sessionId = searchParams.get('session_id');
   const [quoteHasFiles, setQuoteHasFiles] = useState(false);
-  const [loading, setLoading] = useState(!!quoteId);
+  const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (quoteId) {
-      checkQuoteFiles();
+      checkQuoteFilesAndOrder();
+    } else if (sessionId) {
+      // For regular orders, we could fetch order details here
+      setLoading(false);
+    } else {
+      setLoading(false);
     }
-  }, [quoteId]);
+  }, [quoteId, sessionId]);
 
-  const checkQuoteFiles = async () => {
+  const checkQuoteFilesAndOrder = async () => {
     try {
-      const { data, error } = await supabase
+      // Check quote files and get order ID
+      const { data: quoteData, error: quoteError } = await supabase
         .from('quote_requests')
-        .select('file_urls')
+        .select('file_urls, order_id')
         .eq('id', quoteId)
         .single();
 
-      if (!error && data && data.file_urls && data.file_urls.length > 0) {
-        setQuoteHasFiles(true);
+      if (!quoteError && quoteData) {
+        if (quoteData.file_urls && quoteData.file_urls.length > 0) {
+          setQuoteHasFiles(true);
+        }
+
+        // Fetch order number if order was created
+        if (quoteData.order_id) {
+          const { data: orderData, error: orderError } = await supabase
+            .from('orders')
+            .select('id, order_number')
+            .eq('id', quoteData.order_id)
+            .single();
+
+          if (!orderError && orderData) {
+            setOrderNumber(orderData.order_number || `Order #${orderData.id.substring(0, 8)}`);
+          }
+        }
       }
     } catch (error) {
       console.error('Error checking quote files:', error);
@@ -106,7 +129,9 @@ function SuccessContent() {
         <div className="grid grid-cols-2 gap-4 text-left border-t pt-6">
           <div>
             <p className="text-sm text-gray-500">Order Number:</p>
-            <p className="font-semibold text-gray-900">#HP-12345 (Demo)</p>
+            <p className="font-semibold text-gray-900">
+              {orderNumber || 'Processing...'}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Next Action:</p>

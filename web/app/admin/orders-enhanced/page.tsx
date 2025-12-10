@@ -75,6 +75,8 @@ export default function EnhancedOrdersDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [productionFilter, setProductionFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [showDispatchedOrders, setShowDispatchedOrders] = useState<boolean>(false);
+  const [showNewOrdersOnly, setShowNewOrdersOnly] = useState<boolean>(false);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string>('');
@@ -96,7 +98,7 @@ export default function EnhancedOrdersDashboard() {
 
   useEffect(() => {
     filterOrders();
-  }, [searchTerm, statusFilter, productionFilter, priorityFilter, orders]);
+  }, [searchTerm, statusFilter, productionFilter, priorityFilter, orders, showDispatchedOrders, showNewOrdersOnly]);
 
   const checkAccess = async () => {
     try {
@@ -178,6 +180,19 @@ export default function EnhancedOrdersDashboard() {
 
   const filterOrders = () => {
     let filtered = [...orders];
+
+    // Hide dispatched orders by default
+    if (!showDispatchedOrders) {
+      filtered = filtered.filter((order) => order.production_status !== 'dispatched');
+    }
+
+    // Show new orders only filter (paid + not started or pending)
+    if (showNewOrdersOnly) {
+      filtered = filtered.filter((order) => 
+        order.payment_status === 'paid' && 
+        (!order.production_status || order.production_status === 'not_started')
+      );
+    }
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter((order) => order.status === statusFilter);
@@ -342,6 +357,52 @@ export default function EnhancedOrdersDashboard() {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Account
         </Link>
+
+        {/* Prominent Quick Filters */}
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center space-x-3">
+              <Package className="w-8 h-8 text-white" />
+              <div>
+                <h2 className="text-xl font-bold text-white">Quick View</h2>
+                <p className="text-sm text-green-100">Filter orders instantly</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 flex-wrap gap-3">
+              <button
+                onClick={() => {
+                  setShowNewOrdersOnly(!showNewOrdersOnly);
+                  if (!showNewOrdersOnly) {
+                    setShowDispatchedOrders(false);
+                  }
+                }}
+                className={`px-6 py-3 rounded-lg font-bold text-lg shadow-lg transition-all ${
+                  showNewOrdersOnly
+                    ? 'bg-white text-green-600 ring-4 ring-white ring-opacity-50 scale-105'
+                    : 'bg-green-700 text-white hover:bg-green-800'
+                }`}
+              >
+                <AlertCircle className="w-5 h-5 inline mr-2" />
+                New Orders Only
+                {showNewOrdersOnly && (
+                  <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs">
+                    Active
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setShowDispatchedOrders(!showDispatchedOrders)}
+                className={`px-4 py-3 rounded-lg font-semibold shadow-lg transition-all ${
+                  showDispatchedOrders
+                    ? 'bg-white text-green-600'
+                    : 'bg-green-700 text-white hover:bg-green-800'
+                }`}
+              >
+                {showDispatchedOrders ? 'Hide' : 'Show'} Dispatched
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* Enhanced Filters */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
