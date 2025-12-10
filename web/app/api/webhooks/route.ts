@@ -71,6 +71,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ received: true }, { status: 200 });
           }
 
+          // Generate order number
+          const orderNumber = `HP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+          // Get shipping address from session
+          const shippingAddress = (session as any).shipping_details?.address || session.customer_details?.address;
+
+          // Calculate tax (20% VAT if applicable)
+          const subtotal = quote.quoted_price || 0;
+          const tax = quote.tax_applicable ? subtotal * 0.20 : 0;
+          const total = subtotal + tax;
+
           // Create order from quote
           const orderNotes = [
             `Converted from paid quote: ${quote.project_title}`,
@@ -81,21 +92,42 @@ export async function POST(req: NextRequest) {
             quote.operator_assigned ? `\nHandled by: ${quote.operator_assigned}` : '',
             quote.customer_notes ? `\n\nCustomer Notes:\n${quote.customer_notes}` : '',
             quote.admin_notes ? `\n\nAdmin Notes:\n${quote.admin_notes}` : '',
-            quote.tax_applicable ? `\n\nTax: ${quote.tax_type || 'Applicable'}` : '',
+            quote.tax_applicable ? `\n\nTax: ${quote.tax_type || 'VAT 20%'}` : '',
           ].filter(Boolean).join('');
 
           const { data: orderData, error: orderError } = await supabase
             .from('orders')
             .insert([
               {
+                order_number: orderNumber,
                 customer_email: quote.email,
                 customer_name: quote.customer_name,
-                total_amount: quote.quoted_price,
-                status: 'paid',
+                customer_phone: quote.phone_number || '',
+                
+                // Shipping Address
+                shipping_address_line1: shippingAddress?.line1 || quote.address || 'TBC',
+                shipping_address_line2: shippingAddress?.line2 || '',
+                shipping_city: shippingAddress?.city || 'TBC',
+                shipping_county: shippingAddress?.state || '',
+                shipping_postcode: shippingAddress?.postal_code || 'TBC',
+                shipping_country: shippingAddress?.country || 'United Kingdom',
+                
+                // Amounts
+                subtotal: subtotal,
+                tax: tax,
+                total: total,
+                currency: 'GBP',
+                
+                // Status
+                status: 'processing',
                 payment_status: 'paid',
-                order_type: 'quote_payment',
+                
+                // Payment Info
                 stripe_payment_intent_id: session.payment_intent as string,
-                notes: orderNotes,
+                stripe_payment_status: 'succeeded',
+                
+                // Notes
+                customer_notes: orderNotes,
               },
             ])
             .select()
@@ -106,17 +138,29 @@ export async function POST(req: NextRequest) {
             throw orderError;
           }
 
-          // Update quote status
+          // Create order items from quote
+          await supabase
+            .from('order_items')
+            .insert([{
+              order_id: orderData.id,
+              product_name: quote.project_title,
+              quantity: parseInt(quote.quantity) || 1,
+              unit_price: quote.quoted_price || 0,
+              total_price: quote.quoted_price || 0,
+            }]);
+
+          // Update quote status with paid_at timestamp
           await supabase
             .from('quote_requests')
             .update({
               order_id: orderData.id,
               status: 'converted_to_order',
+              paid_at: new Date().toISOString(),
               converted_at: new Date().toISOString(),
             })
             .eq('id', quote.id);
 
-          console.log(`✅ Quote converted to order: ${orderData.id}`);
+          console.log(`✅ Quote converted to order: ${orderNumber} (${orderData.id})`);
           return NextResponse.json({ received: true }, { status: 200 });
         }
 
