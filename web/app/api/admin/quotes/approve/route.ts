@@ -1,26 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(request: NextRequest) {
   try {
-    // Get auth token from request header
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Unauthorized - No auth token' }, { status: 401 });
+    // Create client from cookies to get authenticated user
+    const cookieStore = await cookies();
+    const authCookie = cookieStore.get('sb-access-token');
+    
+    if (!authCookie) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Create client with service key for admin operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create client with anon key for auth check
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${authCookie.value}`
+        }
+      }
+    });
     
-    // Get user from the auth token
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user } } = await supabase.auth.getUser();
     
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if user is admin/operator
@@ -31,8 +39,11 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!profile || !['admin', 'operator'].includes(profile.role)) {
-      return NextResponse.json({ error: 'Forbidden - Not admin/operator' }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    // Now use service key for admin operations
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await request.json();
     const {
