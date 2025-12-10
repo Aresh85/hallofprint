@@ -152,24 +152,24 @@ export default async function ProductListingPage() {
             {/* CTA Section */}
             <div className="mt-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 md:p-12 text-white text-center shadow-2xl">
               <h2 className="text-3xl font-bold mb-4">
-                Need Custom Printing Solutions?
+                Can't See a Product You're After?
               </h2>
               <p className="text-lg text-indigo-100 mb-6 max-w-2xl mx-auto">
-                Can't find exactly what you're looking for? We offer custom printing services tailored to your specific needs.
+                Request a custom quote! We offer bespoke printing services tailored to your specific needs. Upload your artwork and tell us what you need.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
-                  href="/upload-file"
+                  href="/request-quote"
                   className="inline-flex items-center justify-center px-8 py-3 bg-white text-indigo-600 font-bold rounded-xl hover:bg-indigo-50 transition-colors shadow-lg hover:shadow-xl"
                 >
-                  Upload Artwork
+                  Request a Quote
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
                 <Link
-                  href="/"
+                  href="/upload-file"
                   className="inline-flex items-center justify-center px-8 py-3 bg-indigo-700 text-white font-bold rounded-xl hover:bg-indigo-800 transition-colors border-2 border-white/20"
                 >
-                  Contact Us
+                  Upload Artwork
                 </Link>
               </div>
             </div>
