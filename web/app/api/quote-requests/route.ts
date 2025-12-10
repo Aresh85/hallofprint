@@ -45,19 +45,8 @@ export async function POST(request: NextRequest) {
     // Create Supabase client with service role key
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get user if logged in
-    const authHeader = request.headers.get('authorization');
-    let userId = null;
-    
-    if (authHeader) {
-      try {
-        const token = authHeader.replace('Bearer ', '');
-        const { data: { user } } = await supabase.auth.getUser(token);
-        userId = user?.id || null;
-      } catch (e) {
-        console.log('No valid auth token');
-      }
-    }
+    // Try to get user ID from body (passed from client)
+    let userId = body.user_id || null;
 
     // Generate quote order number
     const orderNumber = `QT-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;

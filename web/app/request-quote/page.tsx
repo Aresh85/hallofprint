@@ -160,12 +160,16 @@ export default function RequestQuotePage() {
     setError(false);
 
     try {
+      // Get current user if logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const response = await fetch('/api/quote-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           file_urls: uploadedFiles,
+          user_id: user?.id || null,
         }),
       });
 
