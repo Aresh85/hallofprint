@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/auth';
-import { User, Package, MapPin, Settings, LogOut, Mail, FileText } from 'lucide-react';
+import { User, Package, MapPin, Settings, LogOut, Mail, FileText, ImageIcon } from 'lucide-react';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -13,6 +13,8 @@ export default function AccountPage() {
   const [profile, setProfile] = useState<any>(null);
   const [orderCount, setOrderCount] = useState(0);
   const [priceMatchCount, setPriceMatchCount] = useState(0);
+  const [pendingArtworkCount, setPendingArtworkCount] = useState(0);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
   useEffect(() => {
     checkUser();
@@ -53,6 +55,25 @@ export default function AccountPage() {
         .eq('email', user.email);
 
       setPriceMatchCount(priceMatchesCount || 0);
+
+      // If admin/operator, get pending counts
+      if (profileData?.role === 'operator' || profileData?.role === 'admin') {
+        // Get pending artwork submissions count
+        const { count: artworkCount } = await supabase
+          .from('artwork_submissions')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+
+        setPendingArtworkCount(artworkCount || 0);
+
+        // Get pending orders count (status = 'pending' or 'processing')
+        const { count: pendingOrders } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['pending', 'processing']);
+
+        setPendingOrdersCount(pendingOrders || 0);
+      }
 
     } catch (error) {
       console.error('Error:', error);
@@ -100,115 +121,8 @@ export default function AccountPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Profile Card */}
-          <Link href="/account/profile" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center space-x-4">
-              <div className="bg-indigo-100 p-3 rounded-lg">
-                <User className="w-6 h-6 text-indigo-600" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Profile</h3>
-                <p className="text-sm text-gray-600">Edit your details</p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Orders Card */}
-          <Link href="/account/orders" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative">
-            {orderCount > 0 && (
-              <span className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
-                {orderCount}
-              </span>
-            )}
-            <div className="flex items-center space-x-4">
-              <div className="bg-green-100 p-3 rounded-lg">
-                <Package className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Orders</h3>
-                <p className="text-sm text-gray-600">View order history</p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Addresses Card */}
-          <Link href="/account/addresses" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <MapPin className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Addresses</h3>
-                <p className="text-sm text-gray-600">Manage addresses</p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Preferences Card */}
-          <Link href="/account/preferences" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center space-x-4">
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <Settings className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Preferences</h3>
-                <p className="text-sm text-gray-600">Marketing settings</p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Price Match Requests Card */}
-          <Link href="/account/price-match" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative">
-            {priceMatchCount > 0 && (
-              <span className="absolute top-4 right-4 bg-orange-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
-                {priceMatchCount}
-              </span>
-            )}
-            <div className="flex items-center space-x-4">
-              <div className="bg-orange-100 p-3 rounded-lg">
-                <FileText className="w-6 h-6 text-orange-600" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Price Match</h3>
-                <p className="text-sm text-gray-600">Track your requests</p>
-              </div>
-            </div>
-          </Link>
-
-          {/* Admin Price Match Dashboard (if operator/admin) */}
-          {(profile?.role === 'operator' || profile?.role === 'admin') && (
-            <Link href="/admin/price-match-dashboard" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-indigo-200">
-              <div className="flex items-center space-x-4">
-                <div className="bg-indigo-600 p-3 rounded-lg">
-                  <Mail className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">Price Match Dashboard</h3>
-                  <p className="text-sm text-gray-600">Manage price matches</p>
-                </div>
-              </div>
-            </Link>
-          )}
-
-          {/* Admin Orders Dashboard (if operator/admin) */}
-          {(profile?.role === 'operator' || profile?.role === 'admin') && (
-            <Link href="/admin/orders" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-green-200">
-              <div className="flex items-center space-x-4">
-                <div className="bg-green-600 p-3 rounded-lg">
-                  <Package className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">Order Management</h3>
-                  <p className="text-sm text-gray-600">Manage all orders</p>
-                </div>
-              </div>
-            </Link>
-          )}
-        </div>
-
-        {/* Welcome Message */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+        {/* Welcome Message - Now at the top */}
+        <div className="mb-8 bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-2">
             Welcome back, {profile?.full_name || 'Customer'}! 👋
           </h2>
@@ -216,6 +130,149 @@ export default function AccountPage() {
             Manage your account, view your orders, and update your preferences from your account dashboard.
           </p>
         </div>
+
+        {/* User Features Section */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Account</h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Profile Card */}
+            <Link href="/account/profile" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center space-x-4">
+                <div className="bg-indigo-100 p-3 rounded-lg">
+                  <User className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Profile</h3>
+                  <p className="text-sm text-gray-600">Edit your details</p>
+                </div>
+              </div>
+            </Link>
+
+            {/* Orders Card */}
+            <Link href="/account/orders" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative">
+              {orderCount > 0 && (
+                <span className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                  {orderCount}
+                </span>
+              )}
+              <div className="flex items-center space-x-4">
+                <div className="bg-green-100 p-3 rounded-lg">
+                  <Package className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Orders</h3>
+                  <p className="text-sm text-gray-600">View order history</p>
+                </div>
+              </div>
+            </Link>
+
+            {/* Addresses Card */}
+            <Link href="/account/addresses" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center space-x-4">
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <MapPin className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Addresses</h3>
+                  <p className="text-sm text-gray-600">Manage addresses</p>
+                </div>
+              </div>
+            </Link>
+
+            {/* Preferences Card */}
+            <Link href="/account/preferences" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center space-x-4">
+                <div className="bg-purple-100 p-3 rounded-lg">
+                  <Settings className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Preferences</h3>
+                  <p className="text-sm text-gray-600">Marketing settings</p>
+                </div>
+              </div>
+            </Link>
+
+            {/* Price Match Requests Card */}
+            <Link href="/account/price-match" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative">
+              {priceMatchCount > 0 && (
+                <span className="absolute top-4 right-4 bg-orange-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                  {priceMatchCount}
+                </span>
+              )}
+              <div className="flex items-center space-x-4">
+                <div className="bg-orange-100 p-3 rounded-lg">
+                  <FileText className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Price Match</h3>
+                  <p className="text-sm text-gray-600">Track your requests</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* Admin Features Section */}
+        {(profile?.role === 'operator' || profile?.role === 'admin') && (
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <span>Admin Features</span>
+              <span className="text-xs bg-indigo-600 text-white px-2 py-1 rounded-full">
+                {profile?.role === 'admin' ? 'ADMIN' : 'OPERATOR'}
+              </span>
+            </h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Admin Price Match Dashboard */}
+              <Link href="/admin/price-match-dashboard" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-indigo-200">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-indigo-600 p-3 rounded-lg">
+                    <Mail className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Price Match Dashboard</h3>
+                    <p className="text-sm text-gray-600">Manage price matches</p>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Admin Orders Dashboard */}
+              <Link href="/admin/orders-enhanced" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-green-200 relative">
+                {pendingOrdersCount > 0 && (
+                  <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold rounded-full h-7 w-7 flex items-center justify-center animate-pulse">
+                    {pendingOrdersCount}
+                  </span>
+                )}
+                <div className="flex items-center space-x-4">
+                  <div className="bg-green-600 p-3 rounded-lg">
+                    <Package className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Order Management</h3>
+                    <p className="text-sm text-gray-600">Manage all orders</p>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Admin Artwork Dashboard */}
+              <Link href="/admin/artwork-dashboard" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-purple-200 relative">
+                {pendingArtworkCount > 0 && (
+                  <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold rounded-full h-7 w-7 flex items-center justify-center animate-pulse">
+                    {pendingArtworkCount}
+                  </span>
+                )}
+                <div className="flex items-center space-x-4">
+                  <div className="bg-purple-600 p-3 rounded-lg">
+                    <ImageIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Artwork Dashboard</h3>
+                    <p className="text-sm text-gray-600">Manage artwork submissions</p>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Back to Home */}
         <div className="mt-6 text-center">
