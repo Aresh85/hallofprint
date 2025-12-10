@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/auth';
-import { Briefcase, Clock, CheckCircle, XCircle, AlertCircle, Home, ChevronRight, PoundSterling, Calendar, FileText, CreditCard } from 'lucide-react';
+import { Briefcase, Clock, CheckCircle, XCircle, AlertCircle, Home, ChevronRight, PoundSterling, Calendar, FileText, CreditCard, ArrowRight } from 'lucide-react';
 
 interface Quote {
   id: string;
@@ -259,7 +259,7 @@ export default function MyQuotesPage() {
                     <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-semibold text-gray-900 mb-1">Ready to proceed?</p>
+                          <p className="font-semibold text-gray-900 mb-1">✅ Quote Accepted! Ready to proceed?</p>
                           <p className="text-sm text-gray-600">Complete payment to start your order</p>
                         </div>
                         <button
@@ -291,15 +291,30 @@ export default function MyQuotesPage() {
                   )}
 
                   {quote.order_id && (
-                    <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
-                      <p className="text-green-800 font-semibold">
-                        ✓ This quote has been converted to an order
-                      </p>
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border-2 border-green-300 shadow-sm">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="bg-green-500 rounded-full p-2">
+                          <CheckCircle className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-lg font-bold text-green-900">✓ Paid & Confirmed!</p>
+                          <p className="text-sm text-green-700">Your quote has been accepted and paid</p>
+                        </div>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg mb-3">
+                        <p className="text-sm text-gray-700 mb-2">
+                          <strong>Status:</strong> Your order is now active and ready for processing
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          <strong>Next Steps:</strong> Our team has been alerted and will begin processing your order
+                        </p>
+                      </div>
                       <Link
                         href="/account/orders"
-                        className="text-sm text-green-700 hover:text-green-900 underline"
+                        className="inline-flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-semibold"
                       >
-                        View in My Orders →
+                        <span>View Order Status</span>
+                        <ArrowRight className="w-4 h-4" />
                       </Link>
                     </div>
                   )}
