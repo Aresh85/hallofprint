@@ -22,7 +22,16 @@ export default function RequestQuotePage() {
     quantity: '',
     deadline: '',
     specifications: '',
+    // Delivery Address
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    county: '',
+    postcode: '',
+    country: 'United Kingdom',
+    // Price Match
     price_match_requested: false,
+    competitor_price: '',
     competitor_url: '',
     company_account_requested: false,
   });
@@ -371,6 +380,112 @@ export default function RequestQuotePage() {
             </div>
           </div>
 
+          {/* Delivery Address */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Delivery Address</h2>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="address_line1" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Address Line 1 *
+                </label>
+                <input
+                  type="text"
+                  id="address_line1"
+                  name="address_line1"
+                  required
+                  value={formData.address_line1}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                  placeholder="123 Main Street"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="address_line2" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Address Line 2
+                </label>
+                <input
+                  type="text"
+                  id="address_line2"
+                  name="address_line2"
+                  value={formData.address_line2}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                  placeholder="Apartment, suite, etc. (optional)"
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="city" className="block text-sm font-semibold text-gray-700 mb-2">
+                    City *
+                  </label>
+                  <input
+                    type="text"
+                    id="city"
+                    name="city"
+                    required
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                    placeholder="London"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="county" className="block text-sm font-semibold text-gray-700 mb-2">
+                    County/State
+                  </label>
+                  <input
+                    type="text"
+                    id="county"
+                    name="county"
+                    value={formData.county}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                    placeholder="Greater London (optional)"
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="postcode" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Postcode *
+                  </label>
+                  <input
+                    type="text"
+                    id="postcode"
+                    name="postcode"
+                    required
+                    value={formData.postcode}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                    placeholder="SW1A 1AA"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="country" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Country *
+                  </label>
+                  <select
+                    id="country"
+                    name="country"
+                    required
+                    value={formData.country}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                  >
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Ireland">Ireland</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Print Job Details */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Print Job Details</h2>
@@ -507,19 +622,54 @@ export default function RequestQuotePage() {
             </div>
 
             {formData.price_match_requested && (
-              <div>
-                <label htmlFor="competitor_url" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Competitor Website/Product Link
-                </label>
-                <input
-                  type="url"
-                  id="competitor_url"
-                  name="competitor_url"
-                  value={formData.competitor_url}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
-                  placeholder="https://competitor.com/product"
-                />
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="competitor_price" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Competitor's Price (excluding VAT) *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">£</span>
+                    <input
+                      type="number"
+                      id="competitor_price"
+                      name="competitor_price"
+                      required={formData.price_match_requested}
+                      value={formData.competitor_price}
+                      onChange={handleChange}
+                      step="0.01"
+                      min="0"
+                      className="w-full pl-8 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                      placeholder="99.99"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Enter the competitor's price without VAT</p>
+                </div>
+
+                <div>
+                  <label htmlFor="competitor_url" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Competitor's Website/Quote URL *
+                  </label>
+                  <input
+                    type="url"
+                    id="competitor_url"
+                    name="competitor_url"
+                    required={formData.price_match_requested}
+                    value={formData.competitor_url}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                    placeholder="https://competitor.com/product"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Link to the competitor's product or quote</p>
+                </div>
+
+                <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                  <p className="text-sm font-semibold text-green-800">
+                    🎯 We'll beat their price by 5%!
+                  </p>
+                  <p className="text-xs text-green-700 mt-1">
+                    Our team will review and provide you with a better quote
+                  </p>
+                </div>
               </div>
             )}
 
