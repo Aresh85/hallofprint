@@ -96,8 +96,12 @@ export async function POST(request: NextRequest) {
           quote_submitted_at: new Date().toISOString(),
           created_at: new Date().toISOString(),
           
-          // Set initial total to 0 (will be updated when priced)
+          // Set initial financial values to 0 (will be updated when priced)
+          subtotal: 0,
+          tax: 0,
           total: 0,
+          currency: 'GBP',
+          payment_status: 'pending',
         },
       ])
       .select()
