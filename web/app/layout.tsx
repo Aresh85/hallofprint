@@ -5,6 +5,7 @@ import { CartProvider } from "../context/CartContext";
 import Header from "../components/Layout/Header";
 import Footer from "../components/Layout/Footer";
 import CookieConsent from "../components/Layout/CookieConsent";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
             <CookieConsent />
           </div>
         </CartProvider>
+        <Analytics />
       </body>
     </html>
   );
