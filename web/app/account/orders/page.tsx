@@ -30,11 +30,38 @@ export default function OrdersPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
     loadOrders();
   }, []);
+
+  useEffect(() => {
+    filterOrders();
+  }, [orders, statusFilter]);
+
+  const filterOrders = () => {
+    let filtered = [...orders];
+    
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => {
+        if (statusFilter === 'quotes') {
+          return isQuote(order as any) && order.payment_status !== 'paid';
+        }
+        if (statusFilter === 'paid') {
+          return order.payment_status === 'paid';
+        }
+        if (statusFilter === 'pending_payment') {
+          return order.status === 'quote_priced' && order.payment_status !== 'paid';
+        }
+        return order.status === statusFilter;
+      });
+    }
+    
+    setFilteredOrders(filtered);
+  };
 
   const loadOrders = async () => {
     try {
@@ -49,10 +76,11 @@ export default function OrdersPage() {
         .from('orders')
         .select(`
           *,
-          order_items (*)
+          order_items (*),
+          order_sundries (*)
         `)
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false});
 
       if (error) throw error;
       setOrders(data || []);
@@ -128,7 +156,25 @@ export default function OrdersPage() {
           Back to Account
         </Link>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Order History</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Order History</h1>
+
+        {/* Filter Dropdown */}
+        {orders.length > 0 && (
+          <div className="mb-6 bg-white rounded-lg shadow-md p-4">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Filter Orders:</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full md:w-64 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+            >
+              <option value="all">All Orders ({orders.length})</option>
+              <option value="quotes">Quotes Only ({orders.filter(o => isQuote(o as any) && o.payment_status !== 'paid').length})</option>
+              <option value="paid">Paid Orders ({orders.filter(o => o.payment_status === 'paid').length})</option>
+              <option value="pending_payment">Pending Payment ({orders.filter(o => o.status === 'quote_priced' && o.payment_status !== 'paid').length})</option>
+              <option value="processing">In Production ({orders.filter(o => o.status === 'processing').length})</option>
+            </select>
+          </div>
+        )}
 
         {orders.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
@@ -334,13 +380,13 @@ export default function OrdersPage() {
 
                     {/* Order Items */}
                     {order.order_items && order.order_items.length > 0 && (
-                      <div>
+                      <div className="mb-6">
                         <h4 className="font-bold text-gray-900 mb-4">
                           {isQuote(order as any) ? 'Quote Items' : 'Order Items'}
                         </h4>
                         <div className="space-y-3">
                           {order.order_items.map((item, idx) => (
-                            <div key={idx} className="flex justify-between items-center">
+                            <div key={idx} className="flex justify-between items-center bg-white p-3 rounded">
                               <div>
                                 <p className="font-semibold text-gray-900">{item.product_name}</p>
                                 <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
@@ -354,8 +400,58 @@ export default function OrdersPage() {
                       </div>
                     )}
 
+                    {/* Sundries (Additional Charges) */}
+                    {(order as any).order_sundries && (order as any).order_sundries.length > 0 && (
+                      <div className="mb-6 border-t pt-4">
+                        <h4 className="font-bold text-gray-900 mb-4">Additional Charges</h4>
+                        <div className="space-y-2">
+                          {(order as any).order_sundries.map((sundry: any, idx: number) => (
+                            <div key={idx} className="flex justify-between items-center bg-yellow-50 p-3 rounded">
+                              <div>
+                                <p className="font-semibold text-gray-900">{sundry.description}</p>
+                                <p className="text-sm text-gray-600">
+                                  Qty: {sundry.quantity} × £{sundry.unit_price.toFixed(2)}
+                                </p>
+                              </div>
+                              <p className="font-bold text-gray-900">£{sundry.total_price.toFixed(2)}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Price Breakdown */}
+                    {(order as any).subtotal && (
+                      <div className="border-t pt-4 space-y-2 mb-6">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Subtotal:</span>
+                          <span className="font-semibold">£{(order as any).subtotal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">VAT (20%):</span>
+                          <span className="font-semibold">£{(order as any).tax.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-lg font-bold border-t pt-2">
+                          <span>Total:</span>
+                          <span>£{order.total.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Admin Notes */}
+                    {(order as any).operator_customer_notes && (
+                      <div className="border-t pt-4">
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <h4 className="font-bold text-blue-900 mb-2 text-sm">📝 Message from our team:</h4>
+                          <p className="text-sm text-gray-700">{(order as any).operator_customer_notes}</p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* No items message for quotes without pricing */}
-                    {(!order.order_items || order.order_items.length === 0) && isQuote(order as any) && (
+                    {(!order.order_items || order.order_items.length === 0) && 
+                     (!(order as any).order_sundries || (order as any).order_sundries.length === 0) && 
+                     isQuote(order as any) && (
                       <p className="text-sm text-gray-500 italic">
                         This quote is pending pricing from our team.
                       </p>
