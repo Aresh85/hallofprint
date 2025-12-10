@@ -740,16 +740,31 @@ export default function EnhancedOrdersDashboard() {
                       <label className="text-xs font-semibold text-gray-700 block mb-2">
                         💳 Payment Status:
                       </label>
-                      <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg">
-                        <CreditCard className="w-4 h-4 text-gray-600" />
-                        <span className="text-sm font-semibold">
-                          {order.stripe_payment_status?.toUpperCase() || 'PENDING'}
-                        </span>
+                      <div className="bg-gray-100 px-3 py-2 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <CreditCard className="w-4 h-4 text-gray-600" />
+                          <span className={`text-sm font-semibold ${
+                            order.payment_status === 'paid' ? 'text-green-600' : 'text-gray-700'
+                          }`}>
+                            {order.payment_status === 'paid' ? '✅ PAID' : order.stripe_payment_status?.toUpperCase() || 'PENDING'}
+                          </span>
+                        </div>
+                        {(order as any).paid_at && (
+                          <p className="text-xs text-gray-600 mb-1">
+                            📅 Paid: {new Date((order as any).paid_at).toLocaleString('en-GB', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        )}
                         <a
                           href={`https://dashboard.stripe.com/payments/${order.stripe_payment_intent_id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-indigo-600 hover:text-indigo-800 ml-auto"
+                          className="text-xs text-indigo-600 hover:text-indigo-800"
                         >
                           View in Stripe →
                         </a>

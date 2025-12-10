@@ -15,15 +15,39 @@ function SuccessContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (quoteId) {
+    if (sessionId) {
+      // Fetch order from Stripe session
+      fetchOrderFromSession();
+    } else if (quoteId) {
       checkQuoteFilesAndOrder();
-    } else if (sessionId) {
-      // For regular orders, we could fetch order details here
-      setLoading(false);
     } else {
       setLoading(false);
     }
   }, [quoteId, sessionId]);
+
+  const fetchOrderFromSession = async () => {
+    try {
+      // Find order by stripe session ID
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select('id, order_number, order_type, file_urls')
+        .eq('stripe_payment_intent_id', sessionId)
+        .single();
+
+      if (!orderError && orderData) {
+        setOrderNumber(orderData.order_number);
+        
+        // Check if order has files (for quotes)
+        if (orderData.file_urls && orderData.file_urls.length > 0) {
+          setQuoteHasFiles(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching order:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const checkQuoteFilesAndOrder = async () => {
     try {
