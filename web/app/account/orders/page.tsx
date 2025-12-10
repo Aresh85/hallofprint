@@ -201,25 +201,41 @@ export default function OrdersPage() {
                     </div>
                   )}
 
-                  {/* Pay Now Button for Priced Quotes */}
-                  {order.status === 'quote_priced' && (order as any).stripe_payment_url && (
-                    <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-300">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-gray-900 mb-1">💰 Your Quote is Ready!</p>
-                          <p className="text-sm text-gray-600">
-                            Total: <span className="font-bold text-green-700">£{order.total.toFixed(2)}</span> (incl. VAT)
-                          </p>
+                  {/* Pay Now Button or Status for Priced Quotes */}
+                  {order.status === 'quote_priced' && (
+                    <>
+                      {(order as any).stripe_payment_url ? (
+                        <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-300">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-bold text-gray-900 mb-1">💰 Your Quote is Ready!</p>
+                              <p className="text-sm text-gray-600">
+                                Total: <span className="font-bold text-green-700">£{order.total.toFixed(2)}</span> (incl. VAT)
+                              </p>
+                            </div>
+                            <a
+                              href={(order as any).stripe_payment_url}
+                              className="bg-green-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-green-700 transition-colors shadow-lg flex items-center"
+                            >
+                              <DollarSign className="w-5 h-5 mr-2" />
+                              Pay Now
+                            </a>
+                          </div>
                         </div>
-                        <a
-                          href={(order as any).stripe_payment_url}
-                          className="bg-green-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-green-700 transition-colors shadow-lg flex items-center"
-                        >
-                          <DollarSign className="w-5 h-5 mr-2" />
-                          Pay Now
-                        </a>
-                      </div>
-                    </div>
+                      ) : (
+                        <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-300">
+                          <div>
+                            <p className="font-bold text-gray-900 mb-1">✅ Quote Approved!</p>
+                            <p className="text-sm text-gray-600 mb-1">
+                              Total: <span className="font-bold text-indigo-700">£{order.total.toFixed(2)}</span> (incl. VAT)
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              We're preparing your payment link. You'll receive an email shortly with payment instructions.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   <button
