@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/auth';
-import { User, Package, MapPin, Settings, LogOut, Mail, FileText, ImageIcon } from 'lucide-react';
+import { User, Package, MapPin, Settings, LogOut, Mail, FileText, ImageIcon, Briefcase } from 'lucide-react';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function AccountPage() {
   const [priceMatchCount, setPriceMatchCount] = useState(0);
   const [pendingArtworkCount, setPendingArtworkCount] = useState(0);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [pendingQuotesCount, setPendingQuotesCount] = useState(0);
 
   useEffect(() => {
     checkUser();
@@ -73,6 +74,14 @@ export default function AccountPage() {
           .in('status', ['pending', 'processing']);
 
         setPendingOrdersCount(pendingOrders || 0);
+
+        // Get pending quotes count
+        const { count: quotesCount } = await supabase
+          .from('quote_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+
+        setPendingQuotesCount(quotesCount || 0);
       }
 
     } catch (error) {
@@ -267,6 +276,24 @@ export default function AccountPage() {
                   <div>
                     <h3 className="font-bold text-gray-900">Artwork Dashboard</h3>
                     <p className="text-sm text-gray-600">Manage artwork submissions</p>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Admin Quote Dashboard */}
+              <Link href="/admin/quote-dashboard" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-orange-200 relative">
+                {pendingQuotesCount > 0 && (
+                  <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold rounded-full h-7 w-7 flex items-center justify-center animate-pulse">
+                    {pendingQuotesCount}
+                  </span>
+                )}
+                <div className="flex items-center space-x-4">
+                  <div className="bg-orange-600 p-3 rounded-lg">
+                    <Briefcase className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Quote Requests</h3>
+                    <p className="text-sm text-gray-600">Manage quote requests</p>
                   </div>
                 </div>
               </Link>
