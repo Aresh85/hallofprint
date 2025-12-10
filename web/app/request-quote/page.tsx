@@ -201,10 +201,26 @@ export default function RequestQuotePage() {
             <p className="text-gray-700 mb-6">
               Thank you for your quote request. Our team will review your requirements and get back to you within the hour during business hours (Monday-Friday, 9am-5pm).
             </p>
+            
+            {isLoggedIn && (
+              <div className="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4 mb-6">
+                <p className="text-sm text-gray-700 mb-3">
+                  <strong>Track your quote:</strong> Visit My Quotes to see the status of this and all your quote requests. Once approved, you can make payment directly from there.
+                </p>
+                <Link 
+                  href="/account/quotes"
+                  className="inline-flex items-center justify-center bg-indigo-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  <Briefcase className="w-5 h-5 mr-2" />
+                  View My Quotes
+                </Link>
+              </div>
+            )}
+            
             <div className="space-x-4">
               <Link 
                 href="/products"
-                className="inline-block bg-indigo-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
+                className="inline-block bg-gray-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
               >
                 Browse Products
               </Link>

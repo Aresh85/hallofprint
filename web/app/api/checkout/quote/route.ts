@@ -17,6 +17,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Quote ID is required' }, { status: 400 });
     }
 
+    // Get the base URL from the request headers
+    const host = request.headers.get('host');
+    const protocol = request.headers.get('x-forwarded-proto') || 'https';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch the quote
@@ -72,8 +77,8 @@ export async function POST(request: Request) {
         }] : []),
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/success?quote_id=${quoteId}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/account/quotes`,
+      success_url: `${baseUrl}/success?quote_id=${quoteId}`,
+      cancel_url: `${baseUrl}/account/quotes`,
       customer_email: quote.email,
       metadata: {
         quote_id: quoteId,
