@@ -2,11 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
 import { Briefcase, Search, Filter, Mail, Phone, Calendar, DollarSign, CheckCircle, XCircle, Clock, ArrowRight, Edit2, Save, X as XIcon, FileText } from 'lucide-react';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 interface QuoteRequest {
   id: string;
@@ -53,14 +49,14 @@ export default function QuoteDashboardPage() {
 
   const fetchQuotes = async () => {
     try {
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      const { data, error } = await supabase
-        .from('quote_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setQuotes(data || []);
+      const response = await fetch('/api/admin/quotes');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch quotes');
+      }
+      
+      setQuotes(data.quotes || []);
     } catch (error) {
       console.error('Error fetching quotes:', error);
     } finally {
@@ -70,13 +66,17 @@ export default function QuoteDashboardPage() {
 
   const updateQuote = async (id: string, updates: Partial<QuoteRequest>) => {
     try {
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      const { error } = await supabase
-        .from('quote_requests')
-        .update(updates)
-        .eq('id', id);
-
-      if (error) throw error;
+      const response = await fetch('/api/admin/quotes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, updates }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update quote');
+      }
       
       await fetchQuotes();
       setEditingQuote(null);
@@ -98,32 +98,17 @@ export default function QuoteDashboardPage() {
     }
 
     try {
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      
-      // Create a new order
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert([
-          {
-            customer_email: quote.email,
-            customer_name: quote.customer_name,
-            total_amount: quote.quoted_price,
-            status: 'pending',
-            order_type: 'quote_conversion',
-            notes: `Converted from quote request: ${quote.project_title}\n\n${quote.project_description}`,
-          },
-        ])
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // Update quote with order_id and status
-      await updateQuote(quote.id, {
-        order_id: orderData.id,
-        status: 'converted_to_order',
-        converted_at: new Date().toISOString(),
+      const response = await fetch('/api/orders/create-from-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quote }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to convert quote');
+      }
 
       alert('Quote successfully converted to order!');
       router.push(`/admin/orders-enhanced`);
