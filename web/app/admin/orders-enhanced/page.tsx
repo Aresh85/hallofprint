@@ -423,10 +423,18 @@ export default function EnhancedOrdersDashboard() {
               className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
             >
               <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <optgroup label="Quote Stages">
+                <option value="quote_pending">💬 Quote: Pending</option>
+                <option value="quote_reviewed">👀 Quote: Reviewed</option>
+                <option value="quote_priced">💰 Quote: Priced</option>
+                <option value="quote_accepted">✅ Quote: Accepted</option>
+              </optgroup>
+              <optgroup label="Order Stages">
+                <option value="pending">⏳ Awaiting Production</option>
+                <option value="processing">🔄 Processing</option>
+                <option value="completed">✅ Completed</option>
+                <option value="cancelled">❌ Cancelled</option>
+              </optgroup>
             </select>
             <select
               value={productionFilter}
@@ -505,6 +513,14 @@ export default function EnhancedOrdersDashboard() {
                       <h3 className="text-lg font-bold text-gray-900">
                         Order #{order.order_number}
                       </h3>
+                      
+                      {/* Order Type Badge */}
+                      {(order as any).order_type && (order as any).order_type !== 'standard' && (
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                          {(order as any).order_type === 'quote' && '💬 QUOTE'}
+                          {(order as any).order_type === 'price_match' && '🎯 PRICE MATCH'}
+                        </span>
+                      )}
                       
                       {/* Priority Badge */}
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getPriorityColor(order.priority)}`}>
@@ -629,6 +645,60 @@ export default function EnhancedOrdersDashboard() {
                     </div>
                   )}
                 </div>
+
+                {/* Quote-Specific Info */}
+                {(order as any).order_type === 'quote' && (
+                  <div className="pt-4 border-t mb-4 bg-indigo-50 p-4 rounded-lg">
+                    <p className="text-xs font-semibold text-indigo-800 mb-3">💬 QUOTE REQUEST DETAILS</p>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs text-gray-600 mb-1">Project Title</p>
+                        <p className="text-sm font-semibold text-gray-900">{(order as any).project_title || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600 mb-1">Quantity</p>
+                        <p className="text-sm text-gray-900">{(order as any).quantity || 'N/A'}</p>
+                      </div>
+                    </div>
+                    {(order as any).project_description && (
+                      <div className="mt-3">
+                        <p className="text-xs text-gray-600 mb-1">Description</p>
+                        <p className="text-sm text-gray-900">{(order as any).project_description}</p>
+                      </div>
+                    )}
+                    {(order as any).specifications && (
+                      <div className="mt-3">
+                        <p className="text-xs text-gray-600 mb-1">Specifications</p>
+                        <p className="text-sm text-gray-900">{(order as any).specifications}</p>
+                      </div>
+                    )}
+                    {(order as any).price_match_requested && (
+                      <div className="mt-3 bg-yellow-100 p-3 rounded border border-yellow-300">
+                        <p className="text-xs font-semibold text-yellow-900 mb-2">🎯 PRICE MATCH REQUESTED</p>
+                        {(order as any).competitor_price && (
+                          <p className="text-sm text-gray-900">Competitor Price: <span className="font-bold">£{(order as any).competitor_price}</span> (excl. VAT)</p>
+                        )}
+                        {(order as any).competitor_url && (
+                          <a href={(order as any).competitor_url} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:text-indigo-800 underline">
+                            View Competitor Link →
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    {(order as any).file_urls && (order as any).file_urls.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs text-gray-600 mb-2">📎 Uploaded Files ({(order as any).file_urls.length})</p>
+                        <div className="space-y-1">
+                          {(order as any).file_urls.map((url: string, idx: number) => (
+                            <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="block text-sm text-indigo-600 hover:text-indigo-800">
+                              📄 File {idx + 1}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Customer Info & Address */}
                 <div className="grid md:grid-cols-2 gap-4 pt-4 border-t mb-4">

@@ -45,34 +45,70 @@ export async function POST(request: NextRequest) {
     // Create Supabase client with service role key
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Insert quote request into database
+    // Get user if logged in
+    const authHeader = request.headers.get('authorization');
+    let userId = null;
+    
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user } } = await supabase.auth.getUser(token);
+        userId = user?.id || null;
+      } catch (e) {
+        console.log('No valid auth token');
+      }
+    }
+
+    // Generate quote order number
+    const orderNumber = `QT-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+    // Create ORDER directly (quotes ARE orders now)
     const { data: quoteData, error } = await supabase
-      .from('quote_requests')
+      .from('orders')
       .insert([
         {
+          // Order basics
+          order_type: price_match_requested ? 'price_match' : 'quote',
+          order_number: orderNumber,
+          status: 'quote_pending',
+          
+          // Customer info
+          user_id: userId,
+          guest_email: email,
           customer_name,
           company_name: company_name || null,
-          email,
           phone: phone || null,
+          
+          // Shipping address
+          shipping_address_line1: address_line1 || null,
+          shipping_address_line2: address_line2 || null,
+          shipping_city: city || null,
+          shipping_county: county || null,
+          shipping_postcode: postcode || null,
+          shipping_country: country || 'United Kingdom',
+          
+          // Project details (NEW FIELDS in orders table)
           project_title,
           project_description,
+          specifications: specifications || null,
           quantity: quantity || null,
           deadline: deadline || null,
-          specifications: specifications || null,
           file_urls: file_urls || null,
-          // Address fields
-          address_line1: address_line1 || null,
-          address_line2: address_line2 || null,
-          city: city || null,
-          county: county || null,
-          postcode: postcode || null,
-          country: country || 'United Kingdom',
+          
           // Price match fields
           price_match_requested: price_match_requested || false,
           competitor_price: competitor_price || null,
           competitor_url: competitor_url || null,
+          
+          // Requests
           company_account_requested: company_account_requested || false,
-          status: 'pending',
+          
+          // Timestamps
+          quote_submitted_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          
+          // Set initial total to 0 (will be updated when priced)
+          total: 0,
         },
       ])
       .select()
@@ -143,9 +179,10 @@ export async function POST(request: NextRequest) {
           ` : ''}
           
           <hr>
-          <p><strong>Request ID:</strong> ${quoteData.id}</p>
-          <p><small>Submitted via Hall of Prints website</small></p>
-          <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://hallofprint.vercel.app'}/admin/quote-dashboard">View in Admin Dashboard</a></p>
+          <p><strong>Order Number:</strong> ${quoteData.order_number}</p>
+          <p><strong>Order ID:</strong> ${quoteData.id}</p>
+          <p><small>Quote submitted via Hall of Prints website</small></p>
+          <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://hallofprint.vercel.app'}/admin/orders-enhanced">View in Operations Dashboard</a></p>
         `,
       });
     } catch (emailError) {
