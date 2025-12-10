@@ -59,6 +59,7 @@ export default function Header() {
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Products', href: '/products' },
+    { name: 'Request Quote', href: '/request-quote' },
     { name: 'Upload Artwork', href: '/upload-file' },
     { name: 'Cart', href: '/cart', badge: itemCount }
   ];

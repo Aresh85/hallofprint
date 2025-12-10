@@ -1,0 +1,533 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+import { Briefcase, Search, Filter, Mail, Phone, Calendar, DollarSign, CheckCircle, XCircle, Clock, ArrowRight, Edit2, Save, X as XIcon, FileText } from 'lucide-react';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+interface QuoteRequest {
+  id: string;
+  created_at: string;
+  customer_name: string;
+  company_name?: string;
+  email: string;
+  phone?: string;
+  project_title: string;
+  project_description: string;
+  quantity?: string;
+  deadline?: string;
+  specifications?: string;
+  file_urls?: string[];
+  price_match_requested?: boolean;
+  competitor_url?: string;
+  company_account_requested?: boolean;
+  status: string;
+  admin_notes?: string;
+  quoted_price?: number;
+  quote_valid_until?: string;
+  order_id?: string;
+  converted_at?: string;
+}
+
+export default function QuoteDashboardPage() {
+  const router = useRouter();
+  const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedQuote, setSelectedQuote] = useState<QuoteRequest | null>(null);
+  const [editingQuote, setEditingQuote] = useState<QuoteRequest | null>(null);
+
+  useEffect(() => {
+    checkAccess();
+    fetchQuotes();
+  }, []);
+
+  const checkAccess = async () => {
+    // You can implement admin check here
+    // For now, we'll rely on the service role key
+  };
+
+  const fetchQuotes = async () => {
+    try {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      const { data, error } = await supabase
+        .from('quote_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setQuotes(data || []);
+    } catch (error) {
+      console.error('Error fetching quotes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateQuote = async (id: string, updates: Partial<QuoteRequest>) => {
+    try {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      const { error } = await supabase
+        .from('quote_requests')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      await fetchQuotes();
+      setEditingQuote(null);
+      setSelectedQuote(null);
+    } catch (error) {
+      console.error('Error updating quote:', error);
+      alert('Failed to update quote');
+    }
+  };
+
+  const convertToOrder = async (quote: QuoteRequest) => {
+    if (!quote.quoted_price) {
+      alert('Please add a quoted price before converting to order');
+      return;
+    }
+
+    if (!confirm('Convert this quote to an order? This will create a new order record.')) {
+      return;
+    }
+
+    try {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      // Create a new order
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert([
+          {
+            customer_email: quote.email,
+            customer_name: quote.customer_name,
+            total_amount: quote.quoted_price,
+            status: 'pending',
+            order_type: 'quote_conversion',
+            notes: `Converted from quote request: ${quote.project_title}\n\n${quote.project_description}`,
+          },
+        ])
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Update quote with order_id and status
+      await updateQuote(quote.id, {
+        order_id: orderData.id,
+        status: 'converted_to_order',
+        converted_at: new Date().toISOString(),
+      });
+
+      alert('Quote successfully converted to order!');
+      router.push(`/admin/orders-enhanced`);
+    } catch (error) {
+      console.error('Error converting to order:', error);
+      alert('Failed to convert quote to order');
+    }
+  };
+
+  const filteredQuotes = quotes.filter(quote => {
+    const matchesSearch = 
+      quote.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quote.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quote.project_title.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusBadge = (status: string) => {
+    const styles = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      reviewing: 'bg-blue-100 text-blue-800',
+      quoted: 'bg-green-100 text-green-800',
+      accepted: 'bg-purple-100 text-purple-800',
+      rejected: 'bg-red-100 text-red-800',
+      converted_to_order: 'bg-indigo-100 text-indigo-800',
+    };
+    return styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="w-4 h-4" />;
+      case 'reviewing':
+        return <Filter className="w-4 h-4" />;
+      case 'quoted':
+      case 'accepted':
+        return <CheckCircle className="w-4 h-4" />;
+      case 'rejected':
+        return <XCircle className="w-4 h-4" />;
+      case 'converted_to_order':
+        return <ArrowRight className="w-4 h-4" />;
+      default:
+        return null;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading quotes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Briefcase className="w-8 h-8 text-indigo-600" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Quote Requests Dashboard</h1>
+                <p className="text-sm text-gray-600">{quotes.length} total requests</p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push('/admin/orders-enhanced')}
+              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              View Orders
+            </button>
+          </div>
+
+          {/* Search and Filter */}
+          <div className="mt-6 grid md:grid-cols-2 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search by name, email, or project..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="reviewing">Reviewing</option>
+              <option value="quoted">Quoted</option>
+              <option value="accepted">Accepted</option>
+              <option value="rejected">Rejected</option>
+              <option value="converted_to_order">Converted to Order</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Quotes List */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid gap-6">
+          {filteredQuotes.length === 0 ? (
+            <div className="bg-white rounded-lg shadow p-8 text-center">
+              <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600">No quote requests found</p>
+            </div>
+          ) : (
+            filteredQuotes.map((quote) => (
+              <div key={quote.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-1">{quote.project_title}</h3>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <span className="font-medium">{quote.customer_name}</span>
+                        {quote.company_name && <span>· {quote.company_name}</span>}
+                        <span>· {new Date(quote.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-semibold ${getStatusBadge(quote.status)}`}>
+                      {getStatusIcon(quote.status)}
+                      <span className="capitalize">{quote.status.replace('_', ' ')}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-700 mb-4 line-clamp-2">{quote.project_description}</p>
+
+                  <div className="grid md:grid-cols-3 gap-4 mb-4">
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <Mail className="w-4 h-4" />
+                      <span>{quote.email}</span>
+                    </div>
+                    {quote.phone && (
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Phone className="w-4 h-4" />
+                        <span>{quote.phone}</span>
+                      </div>
+                    )}
+                    {quote.deadline && (
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        <span>Deadline: {new Date(quote.deadline).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {quote.quoted_price && (
+                    <div className="flex items-center space-x-2 text-lg font-bold text-green-600 mb-4">
+                      <DollarSign className="w-5 h-5" />
+                      <span>£{quote.quoted_price.toFixed(2)}</span>
+                    </div>
+                  )}
+
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setSelectedQuote(quote)}
+                      className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                      View Details
+                    </button>
+                    {quote.status === 'quoted' && !quote.order_id && (
+                      <button
+                        onClick={() => convertToOrder(quote)}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        Convert to Order
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Quote Details Modal */}
+      {selectedQuote && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Quote Details</h2>
+              <button
+                onClick={() => {
+                  setSelectedQuote(null);
+                  setEditingQuote(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XIcon className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Customer Info */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Customer Information</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Name</p>
+                    <p className="font-medium">{selectedQuote.customer_name}</p>
+                  </div>
+                  {selectedQuote.company_name && (
+                    <div>
+                      <p className="text-sm text-gray-600">Company</p>
+                      <p className="font-medium">{selectedQuote.company_name}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="font-medium">{selectedQuote.email}</p>
+                  </div>
+                  {selectedQuote.phone && (
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium">{selectedQuote.phone}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Project Details */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Project Details</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-600">Project Title</p>
+                    <p className="font-medium">{selectedQuote.project_title}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Description</p>
+                    <p className="text-gray-800">{selectedQuote.project_description}</p>
+                  </div>
+                  {selectedQuote.specifications && (
+                    <div>
+                      <p className="text-sm text-gray-600">Specifications</p>
+                      <p className="text-gray-800">{selectedQuote.specifications}</p>
+                    </div>
+                  )}
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {selectedQuote.quantity && (
+                      <div>
+                        <p className="text-sm text-gray-600">Quantity</p>
+                        <p className="font-medium">{selectedQuote.quantity}</p>
+                      </div>
+                    )}
+                    {selectedQuote.deadline && (
+                      <div>
+                        <p className="text-sm text-gray-600">Deadline</p>
+                        <p className="font-medium">{new Date(selectedQuote.deadline).toLocaleDateString()}</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Files */}
+                  {selectedQuote.file_urls && selectedQuote.file_urls.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-600 mb-2">Uploaded Files</p>
+                      <div className="space-y-2">
+                        {selectedQuote.file_urls.map((url, index) => (
+                          <a
+                            key={index}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center space-x-2 text-sm text-indigo-600 hover:text-indigo-800"
+                          >
+                            <FileText className="w-4 h-4" />
+                            <span>File {index + 1}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Additional Requests */}
+              {(selectedQuote.price_match_requested || selectedQuote.company_account_requested) && (
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">Additional Requests</h3>
+                  <div className="space-y-3">
+                    {selectedQuote.price_match_requested && (
+                      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <p className="font-semibold text-gray-900 mb-1">Price Match Requested</p>
+                        <p className="text-sm text-gray-700">Customer wants us to match competitor pricing</p>
+                        {selectedQuote.competitor_url && (
+                          <a
+                            href={selectedQuote.competitor_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-indigo-600 hover:text-indigo-800 underline mt-2 inline-block"
+                          >
+                            View Competitor Link →
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    {selectedQuote.company_account_requested && (
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <p className="font-semibold text-gray-900 mb-1">Company Account Requested</p>
+                        <p className="text-sm text-gray-700">
+                          Customer wants to set up a company account for team ordering
+                          {selectedQuote.company_name && ` for ${selectedQuote.company_name}`}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Quote Management */}
+              {editingQuote?.id === selectedQuote.id ? (
+                <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                  <h3 className="text-lg font-bold text-gray-900">Update Quote</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                      <select
+                        value={editingQuote.status}
+                        onChange={(e) => setEditingQuote({ ...editingQuote, status: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="reviewing">Reviewing</option>
+                        <option value="quoted">Quoted</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Quoted Price (£)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editingQuote.quoted_price || ''}
+                        onChange={(e) => setEditingQuote({ ...editingQuote, quoted_price: parseFloat(e.target.value) })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notes</label>
+                    <textarea
+                      rows={4}
+                      value={editingQuote.admin_notes || ''}
+                      onChange={(e) => setEditingQuote({ ...editingQuote, admin_notes: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Internal notes about this quote..."
+                    />
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => updateQuote(editingQuote.id, editingQuote)}
+                      className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>Save Changes</span>
+                    </button>
+                    <button
+                      onClick={() => setEditingQuote(null)}
+                      className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setEditingQuote(selectedQuote)}
+                    className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    <span>Edit Quote</span>
+                  </button>
+                  {selectedQuote.status === 'quoted' && !selectedQuote.order_id && (
+                    <button
+                      onClick={() => convertToOrder(selectedQuote)}
+                      className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                      <span>Convert to Order</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
