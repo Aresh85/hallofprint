@@ -72,11 +72,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update order with payment intent
+    // Update order with payment intent and URL
     const { error: updateError } = await supabase
       .from('orders')
       .update({
         stripe_payment_intent_id: session.id,
+        stripe_payment_url: session.url,
         stripe_payment_status: 'pending',
         payment_status: 'pending',
         updated_at: new Date().toISOString(),
