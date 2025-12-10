@@ -60,7 +60,7 @@ export default function Header() {
     { name: 'Home', href: '/' },
     { name: 'Products', href: '/products' },
     { name: 'Request Quote', href: '/request-quote' },
-    { name: 'Upload Artwork', href: '/upload-file' },
+    { name: 'Upload Artwork', href: '/upload-artwork' },
     { name: 'Cart', href: '/cart', badge: itemCount }
   ];
 
