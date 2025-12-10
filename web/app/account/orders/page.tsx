@@ -11,6 +11,7 @@ type Order = {
   order_number: string;
   created_at: string;
   status: string;
+  payment_status?: string;
   total: number;
   currency: string;
   shipping_address_line1: string;
@@ -179,6 +180,28 @@ export default function OrdersPage() {
                       <p className="text-xl font-bold text-gray-900">
                         £{order.total.toFixed(2)}
                       </p>
+                      {/* Payment Status */}
+                      {order.payment_status === 'paid' && (
+                        <div className="mt-2 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+                          <p className="text-xs font-semibold text-green-800 mb-1">✅ Paid</p>
+                          {(order as any).paid_at && (
+                            <p className="text-xs text-green-700">
+                              {new Date((order as any).paid_at).toLocaleDateString('en-GB', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          )}
+                          {(order as any).payment_method_brand && (order as any).payment_method_last4 && (
+                            <p className="text-xs text-green-700">
+                              {(order as any).payment_method_brand.toUpperCase()} •••• {(order as any).payment_method_last4}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Delivery Address</p>
