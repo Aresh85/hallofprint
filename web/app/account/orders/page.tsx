@@ -354,6 +354,54 @@ export default function OrdersPage() {
 
                 {expandedOrder === order.id && (
                   <div className="border-t bg-gray-50 p-6">
+                    {/* Uploaded Files Section */}
+                    {(order as any).file_urls && (order as any).file_urls.length > 0 && (
+                      <div className="mb-6 border-b pb-4">
+                        <h4 className="font-bold text-gray-900 mb-3">📎 Uploaded Files</h4>
+                        <div className="space-y-2 mb-4">
+                          {(order as any).file_urls.map((url: string, idx: number) => (
+                            <div key={idx} className="flex items-center justify-between bg-white p-3 rounded border">
+                              <div className="flex items-center">
+                                <FileText className="w-4 h-4 text-indigo-600 mr-2" />
+                                <span className="text-sm text-gray-700">File {idx + 1}</span>
+                              </div>
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold"
+                              >
+                                View File →
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* File Update Warning & Upload */}
+                        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+                          <div className="flex items-start mb-3">
+                            <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <h5 className="font-bold text-yellow-900 text-sm mb-1">
+                                Need to Update Your Files?
+                              </h5>
+                              <p className="text-xs text-yellow-800 mb-2">
+                                ⚠️ Uploading new files may affect your quote pricing or delivery timeline. 
+                                Our team will review and contact you if adjustments are needed.
+                              </p>
+                            </div>
+                          </div>
+                          <Link
+                            href={`/upload-artwork?order_id=${order.id}&order_number=${order.order_number}`}
+                            className="inline-flex items-center px-4 py-2 bg-yellow-600 text-white text-sm font-semibold rounded-lg hover:bg-yellow-700 transition-colors"
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload Updated Files
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Quote Details */}
                     {isQuote(order as any) && (
                       <div className="mb-6">
