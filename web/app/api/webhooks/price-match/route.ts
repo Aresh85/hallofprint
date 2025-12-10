@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     try {
       await resend.emails.send({
         from: 'Hall of Prints <noreply@hallofprint.com>',
-        to: 'pricematch@hallofprint.com', // Update with your actual email
+        to: 'aresh@inteeka.com',
         replyTo: data.email,
         subject: `Price Match Request from ${data.name}`,
         html: `

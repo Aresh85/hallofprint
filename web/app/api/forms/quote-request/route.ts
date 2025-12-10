@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // Send email notification using Resend
     const emailResponse = await resend.emails.send({
       from: 'Hall of Prints <noreply@hallofprint.com>',
-      to: 'quotes@hallofprint.com', // Update with your actual email
+      to: 'aresh@inteeka.com',
       replyTo: email,
       subject: `Quote Request for: ${product}`,
       html: `
