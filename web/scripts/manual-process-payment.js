@@ -31,6 +31,22 @@ async function processQuotePayment(quoteId, stripePaymentIntentId) {
       return;
     }
 
+    // Get user_id from quote email
+    let userId = null;
+    try {
+      const { data: userData } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('email', quote.email)
+        .single();
+      userId = userData?.id || null;
+      if (userId) {
+        console.log(`Found user_id: ${userId}`);
+      }
+    } catch (e) {
+      console.log('User not found, creating guest order');
+    }
+
     // Generate order number
     const orderNumber = `HP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     console.log(`Generated order number: ${orderNumber}`);
@@ -56,6 +72,7 @@ async function processQuotePayment(quoteId, stripePaymentIntentId) {
       .insert([
         {
           order_number: orderNumber,
+          user_id: userId,
           customer_email: quote.email,
           customer_name: quote.customer_name,
           customer_phone: quote.phone_number || '',

@@ -74,6 +74,19 @@ export async function POST(req: NextRequest) {
           // Generate order number
           const orderNumber = `HP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
+          // Get user_id from quote email
+          let userId = null;
+          try {
+            const { data: userData } = await supabase
+              .from('user_profiles')
+              .select('id')
+              .eq('email', quote.email)
+              .single();
+            userId = userData?.id || null;
+          } catch (e) {
+            console.log('User not found, creating guest order');
+          }
+
           // Get shipping address from session
           const shippingAddress = (session as any).shipping_details?.address || session.customer_details?.address;
 
@@ -100,6 +113,7 @@ export async function POST(req: NextRequest) {
             .insert([
               {
                 order_number: orderNumber,
+                user_id: userId,
                 customer_email: quote.email,
                 customer_name: quote.customer_name,
                 customer_phone: quote.phone_number || '',
