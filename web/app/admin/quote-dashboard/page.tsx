@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Briefcase, Search, Filter, Mail, Phone, Calendar, DollarSign, CheckCircle, XCircle, Clock, ArrowRight, Edit2, Save, X as XIcon, FileText } from 'lucide-react';
+import { Briefcase, Search, Filter, Mail, Phone, Calendar, PoundSterling, CheckCircle, XCircle, Clock, ArrowRight, Edit2, Save, X as XIcon, FileText } from 'lucide-react';
 
 interface QuoteRequest {
   id: string;
@@ -22,6 +22,13 @@ interface QuoteRequest {
   company_account_requested?: boolean;
   status: string;
   admin_notes?: string;
+  customer_notes?: string;
+  operator_assigned?: string;
+  delivery_time_estimate?: string;
+  tax_applicable?: boolean;
+  tax_type?: string;
+  payment_required?: boolean;
+  payment_deadline?: string;
   quoted_price?: number;
   quote_valid_until?: string;
   order_id?: string;
@@ -270,7 +277,7 @@ export default function QuoteDashboardPage() {
 
                   {quote.quoted_price && (
                     <div className="flex items-center space-x-2 text-lg font-bold text-green-600 mb-4">
-                      <DollarSign className="w-5 h-5" />
+                      <PoundSterling className="w-5 h-5" />
                       <span>£{quote.quoted_price.toFixed(2)}</span>
                     </div>
                   )}
@@ -448,7 +455,7 @@ export default function QuoteDashboardPage() {
                         <option value="pending">Pending</option>
                         <option value="reviewing">Reviewing</option>
                         <option value="quoted">Quoted</option>
-                        <option value="accepted">Accepted</option>
+                        <option value="accepted">Accepted (Requires Payment)</option>
                         <option value="rejected">Rejected</option>
                       </select>
                     </div>
@@ -460,17 +467,88 @@ export default function QuoteDashboardPage() {
                         value={editingQuote.quoted_price || ''}
                         onChange={(e) => setEditingQuote({ ...editingQuote, quoted_price: parseFloat(e.target.value) })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        placeholder="e.g., 122.00"
                       />
                     </div>
                   </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Operator Assigned</label>
+                      <input
+                        type="text"
+                        value={editingQuote.operator_assigned || ''}
+                        onChange={(e) => setEditingQuote({ ...editingQuote, operator_assigned: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        placeholder="e.g., John Smith"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Delivery Time</label>
+                      <input
+                        type="text"
+                        value={editingQuote.delivery_time_estimate || ''}
+                        onChange={(e) => setEditingQuote({ ...editingQuote, delivery_time_estimate: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        placeholder="e.g., 3-5 business days"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+                        <input
+                          type="checkbox"
+                          checked={editingQuote.tax_applicable || false}
+                          onChange={(e) => setEditingQuote({ ...editingQuote, tax_applicable: e.target.checked })}
+                          className="rounded border-gray-300"
+                        />
+                        <span>Tax Applicable</span>
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1">
+                        UK: VAT 20% | EU: Reverse charge with VAT number | Non-EU: No VAT
+                      </p>
+                    </div>
+                    {editingQuote.tax_applicable && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Tax Type</label>
+                        <select
+                          value={editingQuote.tax_type || ''}
+                          onChange={(e) => setEditingQuote({ ...editingQuote, tax_type: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value="">Select tax type</option>
+                          <option value="UK_VAT_20">UK VAT (20%)</option>
+                          <option value="EU_REVERSE_CHARGE">EU Reverse Charge</option>
+                          <option value="NON_EU_EXEMPT">Non-EU (Exempt)</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notes</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Customer Notes (Shared via Email)</label>
                     <textarea
-                      rows={4}
+                      rows={3}
+                      value={editingQuote.customer_notes || ''}
+                      onChange={(e) => setEditingQuote({ ...editingQuote, customer_notes: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Notes that will be sent to the customer via email..."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      These notes will be included in the customer notification email
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notes (Internal Only)</label>
+                    <textarea
+                      rows={3}
                       value={editingQuote.admin_notes || ''}
                       onChange={(e) => setEditingQuote({ ...editingQuote, admin_notes: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                      placeholder="Internal notes about this quote..."
+                      placeholder="Internal notes about this quote (not shared with customer)..."
                     />
                   </div>
                   <div className="flex space-x-2">
