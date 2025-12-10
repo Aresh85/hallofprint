@@ -104,47 +104,55 @@ function SuccessContent() {
           Thank you for your purchase from Hall of Prints. Your order is being processed!
         </p>
 
-        {/* Conditional rendering based on whether quote has files */}
-        {quoteId && quoteHasFiles ? (
+        {/* Conditional rendering based on whether order has files */}
+        {quoteHasFiles ? (
           <div className="bg-green-50 p-6 rounded-xl border border-green-200 mb-8">
             <h2 className="text-2xl font-bold text-green-700 mb-3 flex items-center justify-center">
               <FileCheck className="w-6 h-6 mr-2" />
-              Order Ready for Processing!
+              Your Order is Being Reviewed!
             </h2>
             <p className="text-gray-700 mb-4">
-              Your quote has been <strong>paid and converted to an active order</strong>. Since you already uploaded files with your quote request, we have everything we need to get started!
+              Your payment has been received and your artwork files are with our team. We're reviewing everything now and will get back to you shortly with any questions or updates.
             </p>
             <div className="bg-white p-4 rounded-lg mb-4">
               <div className="flex items-center justify-center space-x-2 text-indigo-700 mb-2">
                 <Bell className="w-5 h-5" />
-                <p className="font-semibold">Our team has been alerted</p>
+                <p className="font-semibold">Our production team has been notified</p>
               </div>
               <p className="text-sm text-gray-600">
-                A member of our production team will begin processing your order shortly. You can track the progress in your order dashboard.
+                You can track your order progress in your dashboard. If you need to update your artwork file, you can do so via the{' '}
+                <Link href="/upload-artwork" className="text-indigo-600 hover:text-indigo-800 font-semibold underline">
+                  Upload Artwork
+                </Link>
+                {' '}page.
               </p>
             </div>
             <Link 
               href="/account/orders"
               className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors shadow-md"
             >
-              View Order Dashboard
+              View My Orders
             </Link>
           </div>
         ) : (
           <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-200 mb-8">
             <h2 className="text-2xl font-bold text-indigo-700 mb-3 flex items-center justify-center">
               <UploadCloud className="w-6 h-6 mr-2" />
-              Step 1: Upload Your Print File
+              Next Step: Upload Your Print File
             </h2>
             <p className="text-gray-600 mb-4">
-              To begin the printing process, please upload your high-resolution artwork file (PDF, AI, PSD).
+              To begin production, please upload your high-resolution artwork file (PDF, AI, PSD). You can also upload it later via the{' '}
+              <Link href="/upload-artwork" className="text-indigo-600 hover:text-indigo-800 font-semibold underline">
+                Upload Artwork
+              </Link>
+              {' '}page.
             </p>
             
             <Link 
-              href="/upload-file"
+              href="/upload-artwork"
               className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md"
             >
-              Go to File Uploader
+              Upload Artwork Now
             </Link>
           </div>
         )}

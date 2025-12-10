@@ -55,9 +55,42 @@ export async function POST(req: NextRequest) {
       console.log(`✅ Payment received for session: ${session.id}`);
 
       try {
-        // Check if this is a quote payment
+        // Check if this is a quote payment for an existing order
+        if (session.metadata?.type === 'quote_payment' && session.metadata?.order_id) {
+          console.log(`Processing quote payment for order: ${session.metadata.order_id}`);
+          
+          // Retrieve payment method details
+          const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
+          const paymentMethod = paymentIntent.payment_method 
+            ? await stripe.paymentMethods.retrieve(paymentIntent.payment_method as string)
+            : null;
+          
+          // Update existing order with payment details
+          const { error: updateError } = await supabase
+            .from('orders')
+            .update({
+              payment_status: 'paid',
+              stripe_payment_status: 'succeeded',
+              paid_at: new Date().toISOString(),
+              payment_method_brand: paymentMethod?.card?.brand || null,
+              payment_method_last4: paymentMethod?.card?.last4 || null,
+              status: 'processing',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', session.metadata.order_id);
+
+          if (updateError) {
+            console.error('Error updating order payment status:', updateError);
+            throw updateError;
+          }
+
+          console.log(`✅ Order payment updated: ${session.metadata.order_number}`);
+          return NextResponse.json({ received: true }, { status: 200 });
+        }
+        
+        // Legacy: Check if this is a quote payment with quote_id (old flow)
         if (session.metadata?.type === 'quote_payment' && session.metadata?.quote_id) {
-          console.log(`Processing quote payment for quote: ${session.metadata.quote_id}`);
+          console.log(`Processing legacy quote payment for quote: ${session.metadata.quote_id}`);
           
           // Fetch the quote
           const { data: quote, error: quoteError } = await supabase
