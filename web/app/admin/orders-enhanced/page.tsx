@@ -838,7 +838,8 @@ export default function EnhancedOrdersDashboard() {
 
                 {/* Quote Action Buttons */}
                 {((order as any).order_type === 'quote' || (order as any).order_type === 'price_match') && 
-                 !['quote_priced', 'quote_accepted', 'cancelled', 'completed'].includes(order.status) && (
+                 !['quote_priced', 'quote_accepted', 'cancelled', 'completed'].includes(order.status) &&
+                 order.payment_status !== 'paid' && (
                   <div className="mt-4 border-t pt-4">
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-300">
                       <p className="text-sm font-bold text-gray-900 mb-3">💰 QUOTE ACTIONS</p>
