@@ -54,6 +54,69 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Send alert email if status changed to "accepted_no_payment"
+    if (updates.status === 'accepted_no_payment' && currentQuote.status !== 'accepted_no_payment') {
+      try {
+        const emailResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+          },
+          body: JSON.stringify({
+            from: 'Hall of Prints <onboarding@resend.dev>',
+            to: ['aresh@inteeka.com'],
+            subject: `⚠️ ALERT: Quote Accepted Without Payment - ${currentQuote.project_title}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background-color: #FEE2E2; padding: 20px; border-radius: 8px; border-left: 4px solid #DC2626; margin-bottom: 20px;">
+                  <h1 style="color: #DC2626; margin-top: 0;">⚠️ Exception Alert: No Payment Required</h1>
+                  <p style="color: #991B1B; font-weight: bold;">A quote has been accepted without payment requirement. This is an exception case.</p>
+                </div>
+                
+                <h2>Quote Details</h2>
+                <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <p><strong>Project:</strong> ${currentQuote.project_title}</p>
+                  <p><strong>Customer:</strong> ${currentQuote.customer_name}</p>
+                  <p><strong>Email:</strong> ${currentQuote.email}</p>
+                  <p><strong>Phone:</strong> ${currentQuote.phone || 'N/A'}</p>
+                  <p><strong>Company:</strong> ${currentQuote.company_name || 'N/A'}</p>
+                  <p><strong>Quoted Price:</strong> £${(updates.quoted_price || currentQuote.quoted_price || 0).toFixed(2)}</p>
+                  ${updates.operator_assigned ? `<p><strong>Operator:</strong> ${updates.operator_assigned}</p>` : ''}
+                </div>
+                
+                <div style="background-color: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="margin-top: 0; color: #92400E;">Project Description</h3>
+                  <p>${currentQuote.project_description}</p>
+                  ${currentQuote.specifications ? `<p><strong>Specifications:</strong> ${currentQuote.specifications}</p>` : ''}
+                  ${currentQuote.quantity ? `<p><strong>Quantity:</strong> ${currentQuote.quantity}</p>` : ''}
+                </div>
+                
+                ${updates.admin_notes || currentQuote.admin_notes ? `
+                  <div style="background-color: #DBEAFE; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="margin-top: 0; color: #1E40AF;">Admin Notes</h3>
+                    <p style="white-space: pre-line;">${updates.admin_notes || currentQuote.admin_notes}</p>
+                  </div>
+                ` : ''}
+                
+                <p style="color: #6B7280; font-size: 14px; margin-top: 30px;">
+                  This is an automated alert for exception handling. Please review this case.
+                </p>
+              </div>
+            `
+          })
+        });
+
+        if (!emailResponse.ok) {
+          console.error('Failed to send alert email:', await emailResponse.text());
+        } else {
+          console.log('No-payment exception alert email sent');
+        }
+      } catch (emailError) {
+        console.error('Error sending alert email:', emailError);
+      }
+    }
+
     // Send email notification if status changed to "accepted"
     if (updates.status === 'accepted' && currentQuote.status !== 'accepted') {
       try {

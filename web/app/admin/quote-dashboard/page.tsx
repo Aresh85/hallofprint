@@ -43,11 +43,23 @@ export default function QuoteDashboardPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedQuote, setSelectedQuote] = useState<QuoteRequest | null>(null);
   const [editingQuote, setEditingQuote] = useState<QuoteRequest | null>(null);
+  const [operators, setOperators] = useState<any[]>([]);
 
   useEffect(() => {
     checkAccess();
     fetchQuotes();
+    fetchOperators();
   }, []);
+
+  const fetchOperators = async () => {
+    try {
+      const response = await fetch('/api/admin/operators');
+      const data = await response.json();
+      setOperators(data.operators || []);
+    } catch (error) {
+      console.error('Error fetching operators:', error);
+    }
+  };
 
   const checkAccess = async () => {
     // You can implement admin check here
@@ -73,6 +85,13 @@ export default function QuoteDashboardPage() {
 
   const updateQuote = async (id: string, updates: Partial<QuoteRequest>) => {
     try {
+      // Check if status is being changed to accepted_no_payment
+      if (updates.status === 'accepted_no_payment') {
+        if (!confirm('⚠️ WARNING: You are accepting this quote without payment requirement. This is an exception case and will notify management. Are you sure?')) {
+          return;
+        }
+      }
+
       const response = await fetch('/api/admin/quotes', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -456,6 +475,7 @@ export default function QuoteDashboardPage() {
                         <option value="reviewing">Reviewing</option>
                         <option value="quoted">Quoted</option>
                         <option value="accepted">Accepted (Requires Payment)</option>
+                        <option value="accepted_no_payment">Accepted (No Payment - Exception)</option>
                         <option value="rejected">Rejected</option>
                       </select>
                     </div>
@@ -475,13 +495,18 @@ export default function QuoteDashboardPage() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Operator Assigned</label>
-                      <input
-                        type="text"
+                      <select
                         value={editingQuote.operator_assigned || ''}
                         onChange={(e) => setEditingQuote({ ...editingQuote, operator_assigned: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                        placeholder="e.g., John Smith"
-                      />
+                      >
+                        <option value="">Select operator...</option>
+                        {operators.map((op) => (
+                          <option key={op.id} value={op.full_name}>
+                            {op.full_name} ({op.email})
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Delivery Time</label>

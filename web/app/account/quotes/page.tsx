@@ -219,11 +219,10 @@ export default function MyQuotesPage() {
                   </div>
 
                   {quote.quoted_price && (
-                    <div className="flex items-center space-x-2 text-2xl font-bold text-green-600 mb-4">
-                      <PoundSterling className="w-6 h-6" />
+                    <div className="text-2xl font-bold text-green-600 mb-4">
                       <span>£{quote.quoted_price.toFixed(2)}</span>
                       {quote.tax_applicable && (
-                        <span className="text-sm text-gray-600 font-normal">+ {quote.tax_type || 'tax'}</span>
+                        <span className="text-sm text-gray-600 font-normal ml-2">+ {quote.tax_type || 'tax'}</span>
                       )}
                     </div>
                   )}
@@ -264,9 +263,23 @@ export default function MyQuotesPage() {
                           <p className="text-sm text-gray-600">Complete payment to start your order</p>
                         </div>
                         <button
-                          onClick={() => {
-                            // TODO: Implement checkout for quote
-                            alert('Payment flow will be implemented next');
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/checkout/quote', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ quoteId: quote.id }),
+                              });
+                              const data = await response.json();
+                              if (data.url) {
+                                window.location.href = data.url;
+                              } else {
+                                alert('Failed to create checkout session');
+                              }
+                            } catch (error) {
+                              console.error('Checkout error:', error);
+                              alert('Failed to start checkout');
+                            }
                           }}
                           className="flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-semibold"
                         >

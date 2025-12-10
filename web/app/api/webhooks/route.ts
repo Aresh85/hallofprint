@@ -55,6 +55,71 @@ export async function POST(req: NextRequest) {
       console.log(`✅ Payment received for session: ${session.id}`);
 
       try {
+        // Check if this is a quote payment
+        if (session.metadata?.type === 'quote_payment' && session.metadata?.quote_id) {
+          console.log(`Processing quote payment for quote: ${session.metadata.quote_id}`);
+          
+          // Fetch the quote
+          const { data: quote, error: quoteError } = await supabase
+            .from('quote_requests')
+            .select('*')
+            .eq('id', session.metadata.quote_id)
+            .single();
+
+          if (quoteError || !quote) {
+            console.error('Quote not found:', quoteError);
+            return NextResponse.json({ received: true }, { status: 200 });
+          }
+
+          // Create order from quote
+          const orderNotes = [
+            `Converted from paid quote: ${quote.project_title}`,
+            `\nProject Description: ${quote.project_description}`,
+            quote.specifications ? `\nSpecifications: ${quote.specifications}` : '',
+            quote.quantity ? `\nQuantity: ${quote.quantity}` : '',
+            quote.delivery_time_estimate ? `\nEstimated Delivery: ${quote.delivery_time_estimate}` : '',
+            quote.operator_assigned ? `\nHandled by: ${quote.operator_assigned}` : '',
+            quote.customer_notes ? `\n\nCustomer Notes:\n${quote.customer_notes}` : '',
+            quote.admin_notes ? `\n\nAdmin Notes:\n${quote.admin_notes}` : '',
+            quote.tax_applicable ? `\n\nTax: ${quote.tax_type || 'Applicable'}` : '',
+          ].filter(Boolean).join('');
+
+          const { data: orderData, error: orderError } = await supabase
+            .from('orders')
+            .insert([
+              {
+                customer_email: quote.email,
+                customer_name: quote.customer_name,
+                total_amount: quote.quoted_price,
+                status: 'paid',
+                payment_status: 'paid',
+                order_type: 'quote_payment',
+                stripe_payment_intent_id: session.payment_intent as string,
+                notes: orderNotes,
+              },
+            ])
+            .select()
+            .single();
+
+          if (orderError) {
+            console.error('Error creating order from quote:', orderError);
+            throw orderError;
+          }
+
+          // Update quote status
+          await supabase
+            .from('quote_requests')
+            .update({
+              order_id: orderData.id,
+              status: 'converted_to_order',
+              converted_at: new Date().toISOString(),
+            })
+            .eq('id', quote.id);
+
+          console.log(`✅ Quote converted to order: ${orderData.id}`);
+          return NextResponse.json({ received: true }, { status: 200 });
+        }
+
         // Get line items from the session
         const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
           expand: ['data.price.product']
