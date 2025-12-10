@@ -637,10 +637,18 @@ export default function EnhancedOrdersDashboard() {
                       
                       {/* Order Type Badge */}
                       {(order as any).order_type && (order as any).order_type !== 'standard' && (
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300">
-                          {(order as any).order_type === 'quote' && '💬 QUOTE'}
-                          {(order as any).order_type === 'price_match' && '🎯 PRICE MATCH'}
-                        </span>
+                        <>
+                          {(order as any).order_type === 'quote' && (
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                              💬 QUOTE
+                            </span>
+                          )}
+                          {(order as any).order_type === 'price_match' && (
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border-2 border-yellow-400 animate-pulse">
+                              🎯 PRICE MATCH
+                            </span>
+                          )}
+                        </>
                       )}
                       
                       {/* Priority Badge */}

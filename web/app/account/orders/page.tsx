@@ -151,11 +151,24 @@ export default function OrdersPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="text-lg font-bold text-gray-900">
-                          {isQuote(order as any) ? 'Quote' : 'Order'} #{order.order_number}
+                          {order.payment_status === 'paid' ? 'Order' : (isQuote(order as any) ? 'Quote' : 'Order')} #{order.order_number}
                         </h3>
-                        {isQuote(order as any) && (
-                          <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded">
-                            💬 QUOTE
+                        {/* Show ORDER badge if paid, otherwise show QUOTE badge */}
+                        {order.payment_status === 'paid' ? (
+                          <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-semibold rounded">
+                            📦 ORDER
+                          </span>
+                        ) : (
+                          isQuote(order as any) && (
+                            <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded">
+                              💬 QUOTE
+                            </span>
+                          )
+                        )}
+                        {/* Show PRICE MATCH badge if applicable */}
+                        {(order as any).order_type === 'price_match' && (
+                          <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">
+                            🎯 PRICE MATCH
                           </span>
                         )}
                         {/* Production Status */}
