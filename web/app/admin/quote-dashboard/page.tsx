@@ -369,6 +369,22 @@ export default function QuoteDashboardPage() {
                 </div>
               </div>
 
+              {/* Delivery Address */}
+              {(selectedQuote as any).address_line1 && (
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">Delivery Address</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="font-medium">{(selectedQuote as any).address_line1}</p>
+                    {(selectedQuote as any).address_line2 && <p className="text-gray-700">{(selectedQuote as any).address_line2}</p>}
+                    <p className="text-gray-700">
+                      {(selectedQuote as any).city}, {(selectedQuote as any).postcode}
+                    </p>
+                    {(selectedQuote as any).county && <p className="text-gray-700">{(selectedQuote as any).county}</p>}
+                    <p className="text-gray-700">{(selectedQuote as any).country || 'United Kingdom'}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Project Details */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Project Details</h3>
@@ -432,16 +448,23 @@ export default function QuoteDashboardPage() {
                   <div className="space-y-3">
                     {selectedQuote.price_match_requested && (
                       <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                        <p className="font-semibold text-gray-900 mb-1">Price Match Requested</p>
-                        <p className="text-sm text-gray-700">Customer wants us to match competitor pricing</p>
+                        <p className="font-semibold text-gray-900 mb-2">Price Match Requested</p>
+                        <p className="text-sm text-gray-700 mb-2">Customer wants us to match competitor pricing</p>
+                        {(selectedQuote as any).competitor_price && (
+                          <div className="mb-2">
+                            <p className="text-sm text-gray-600">Competitor's Price (excl. VAT)</p>
+                            <p className="text-lg font-bold text-green-600">£{(selectedQuote as any).competitor_price}</p>
+                          </div>
+                        )}
                         {selectedQuote.competitor_url && (
                           <a
                             href={selectedQuote.competitor_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-indigo-600 hover:text-indigo-800 underline mt-2 inline-block"
+                            className="text-sm text-indigo-600 hover:text-indigo-800 underline inline-flex items-center space-x-1"
                           >
-                            View Competitor Link →
+                            <span>View Competitor Link</span>
+                            <ArrowRight className="w-3 h-3" />
                           </a>
                         )}
                       </div>
