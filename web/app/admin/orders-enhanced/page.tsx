@@ -91,6 +91,14 @@ export default function EnhancedOrdersDashboard() {
   const [operators, setOperators] = useState<Array<{id: string, full_name: string}>>([]);
   const [expandedActivity, setExpandedActivity] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  
+  // Quote pricing state
+  const [quotePricingModal, setQuotePricingModal] = useState<string | null>(null);
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [taxIncluded, setTaxIncluded] = useState(true);
+  const [taxRate, setTaxRate] = useState(20);
+  const [quoteResponseNotes, setQuoteResponseNotes] = useState('');
+  const [processingQuote, setProcessingQuote] = useState(false);
 
   useEffect(() => {
     checkAccess();
@@ -269,6 +277,117 @@ export default function EnhancedOrdersDashboard() {
       console.error('Error adding sundry:', error);
       alert('Failed to add sundry');
     }
+  };
+
+  const approveQuote = async (orderId: string) => {
+    if (processingQuote) return;
+    
+    try {
+      setProcessingQuote(true);
+      
+      const response = await fetch('/api/admin/quotes/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: orderId,
+          delivery_date: deliveryDate || null,
+          tax_included: taxIncluded,
+          tax_rate: taxRate,
+          quote_response_notes: quoteResponseNotes || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to approve quote');
+      }
+
+      alert(`Quote approved! Total: £${data.total.toFixed(2)}`);
+      setQuotePricingModal(null);
+      setDeliveryDate('');
+      setQuoteResponseNotes('');
+      setTaxIncluded(true);
+      setTaxRate(20);
+      loadOrders();
+    } catch (error: any) {
+      console.error('Error approving quote:', error);
+      alert(error.message || 'Failed to approve quote');
+    } finally {
+      setProcessingQuote(false);
+    }
+  };
+
+  const rejectQuote = async (orderId: string, reason: string) => {
+    if (processingQuote) return;
+    
+    if (!confirm('Are you sure you want to reject this quote?')) return;
+
+    try {
+      setProcessingQuote(true);
+
+      const response = await fetch('/api/admin/quotes/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: orderId,
+          rejection_reason: reason,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reject quote');
+      }
+
+      alert('Quote rejected successfully');
+      setQuotePricingModal(null);
+      loadOrders();
+    } catch (error: any) {
+      console.error('Error rejecting quote:', error);
+      alert(error.message || 'Failed to reject quote');
+    } finally {
+      setProcessingQuote(false);
+    }
+  };
+
+  const sendToPayment = async (orderId: string) => {
+    if (processingQuote) return;
+
+    if (!confirm('Send payment link to customer? This will email them with the quote total and payment link.')) return;
+
+    try {
+      setProcessingQuote(true);
+
+      const response = await fetch('/api/admin/quotes/send-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send payment link');
+      }
+
+      alert('Payment link sent to customer successfully!');
+      loadOrders();
+    } catch (error: any) {
+      console.error('Error sending payment:', error);
+      alert(error.message || 'Failed to send payment link');
+    } finally {
+      setProcessingQuote(false);
+    }
+  };
+
+  const calculateQuoteTotal = (order: any) => {
+    const sundries = order.order_sundries || [];
+    const subtotal = sundries.reduce((sum: number, item: any) => sum + item.total_price, 0);
+    const tax = taxIncluded ? (subtotal * (taxRate / 100)) : 0;
+    const total = subtotal + tax;
+    return { subtotal, tax, total };
   };
 
   const getPriorityColor = (priority?: string) => {
