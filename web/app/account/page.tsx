@@ -16,6 +16,8 @@ export default function AccountPage() {
   const [pendingArtworkCount, setPendingArtworkCount] = useState(0);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingQuotesCount, setPendingQuotesCount] = useState(0);
+  const [quoteCount, setQuoteCount] = useState(0);
+  const [acceptedQuotesCount, setAcceptedQuotesCount] = useState(0);
 
   useEffect(() => {
     checkUser();
@@ -56,6 +58,24 @@ export default function AccountPage() {
         .eq('email', user.email);
 
       setPriceMatchCount(priceMatchesCount || 0);
+
+      // Get quote count
+      const { count: quotesCount } = await supabase
+        .from('quote_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('email', user.email);
+
+      setQuoteCount(quotesCount || 0);
+
+      // Get accepted quotes awaiting payment
+      const { count: acceptedCount } = await supabase
+        .from('quote_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('email', user.email)
+        .eq('status', 'accepted')
+        .is('order_id', null);
+
+      setAcceptedQuotesCount(acceptedCount || 0);
 
       // If admin/operator, get pending counts
       if (profileData?.role === 'operator' || profileData?.role === 'admin') {
@@ -215,6 +235,29 @@ export default function AccountPage() {
                 <div>
                   <h3 className="font-bold text-gray-900">Price Match</h3>
                   <p className="text-sm text-gray-600">Track your requests</p>
+                </div>
+              </div>
+            </Link>
+
+            {/* My Quotes Card */}
+            <Link href="/account/quotes" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative">
+              {quoteCount > 0 && (
+                <span className="absolute top-4 right-4 bg-teal-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                  {quoteCount}
+                </span>
+              )}
+              {acceptedQuotesCount > 0 && (
+                <span className="absolute top-2 right-2 bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                  {acceptedQuotesCount} awaiting payment
+                </span>
+              )}
+              <div className="flex items-center space-x-4">
+                <div className="bg-teal-100 p-3 rounded-lg">
+                  <Briefcase className="w-6 h-6 text-teal-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">My Quotes</h3>
+                  <p className="text-sm text-gray-600">View quote requests</p>
                 </div>
               </div>
             </Link>

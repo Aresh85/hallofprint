@@ -17,7 +17,19 @@ export async function POST(request: Request) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Create a new order
+    // Create a new order with all quote details
+    const orderNotes = [
+      `Converted from quote request: ${quote.project_title}`,
+      `\nProject Description: ${quote.project_description}`,
+      quote.specifications ? `\nSpecifications: ${quote.specifications}` : '',
+      quote.quantity ? `\nQuantity: ${quote.quantity}` : '',
+      quote.delivery_time_estimate ? `\nEstimated Delivery: ${quote.delivery_time_estimate}` : '',
+      quote.operator_assigned ? `\nHandled by: ${quote.operator_assigned}` : '',
+      quote.customer_notes ? `\n\nCustomer Notes:\n${quote.customer_notes}` : '',
+      quote.admin_notes ? `\n\nAdmin Notes:\n${quote.admin_notes}` : '',
+      quote.tax_applicable ? `\n\nTax: ${quote.tax_type || 'Applicable'}` : '',
+    ].filter(Boolean).join('');
+
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert([
@@ -27,7 +39,7 @@ export async function POST(request: Request) {
           total_amount: quote.quoted_price,
           status: 'pending',
           order_type: 'quote_conversion',
-          notes: `Converted from quote request: ${quote.project_title}\n\n${quote.project_description}`,
+          notes: orderNotes,
         },
       ])
       .select()
