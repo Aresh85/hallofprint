@@ -225,7 +225,7 @@ export default function OrdersPage() {
                   )}
 
                   {/* Pay Now Button or Status for Priced Quotes */}
-                  {order.status === 'quote_priced' && (
+                  {order.status === 'quote_priced' && order.payment_status !== 'paid' && (
                     <>
                       {(order as any).stripe_payment_url ? (
                         <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-300">
