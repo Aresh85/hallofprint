@@ -64,17 +64,43 @@ export default function OrdersPage() {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
+      // Quote statuses
+      case 'quote_pending':
+        return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'quote_reviewed':
+        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+      case 'quote_priced':
+        return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'quote_accepted':
+        return 'bg-green-100 text-green-800 border-green-300';
+      // Order statuses
       case 'completed':
         return 'bg-green-100 text-green-800 border-green-300';
       case 'processing':
         return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'dispatched':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
       case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-300';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-300';
     }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'quote_pending': return 'Quote: Pending Review';
+      case 'quote_reviewed': return 'Quote: Under Review';
+      case 'quote_priced': return 'Quote: Priced';
+      case 'quote_accepted': return 'Quote: Accepted';
+      default: return status.replace('_', ' ').toUpperCase();
+    }
+  };
+
+  const isQuote = (order: any) => {
+    return order.order_type === 'quote' || order.order_type === 'price_match';
   };
 
   const formatDate = (dateString: string) => {
@@ -122,16 +148,28 @@ export default function OrdersPage() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-1">
-                        Order #{order.order_number}
-                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-bold text-gray-900">
+                          {isQuote(order as any) ? 'Quote' : 'Order'} #{order.order_number}
+                        </h3>
+                        {isQuote(order as any) && (
+                          <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded">
+                            💬 QUOTE
+                          </span>
+                        )}
+                      </div>
+                      {(order as any).project_title && (
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                          {(order as any).project_title}
+                        </p>
+                      )}
                       <div className="flex items-center text-sm text-gray-600">
                         <Calendar className="w-4 h-4 mr-1" />
                         {formatDate(order.created_at)}
                       </div>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(order.status)}`}>
-                      {order.status.toUpperCase()}
+                      {getStatusLabel(order.status)}
                     </span>
                   </div>
 
@@ -181,22 +219,60 @@ export default function OrdersPage() {
                   </button>
                 </div>
 
-                {expandedOrder === order.id && order.order_items && (
+                {expandedOrder === order.id && (
                   <div className="border-t bg-gray-50 p-6">
-                    <h4 className="font-bold text-gray-900 mb-4">Order Items</h4>
-                    <div className="space-y-3">
-                      {order.order_items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center">
-                          <div>
-                            <p className="font-semibold text-gray-900">{item.product_name}</p>
-                            <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                    {/* Quote Details */}
+                    {isQuote(order as any) && (
+                      <div className="mb-6">
+                        <h4 className="font-bold text-gray-900 mb-3">Quote Details</h4>
+                        {(order as any).project_description && (
+                          <div className="mb-3">
+                            <p className="text-sm font-semibold text-gray-700">Description:</p>
+                            <p className="text-sm text-gray-600">{(order as any).project_description}</p>
                           </div>
-                          <p className="font-bold text-gray-900">
-                            £{item.total_price.toFixed(2)}
+                        )}
+                        {(order as any).quantity && (
+                          <p className="text-sm text-gray-600 mb-1">
+                            <span className="font-semibold">Quantity:</span> {(order as any).quantity}
                           </p>
+                        )}
+                        {(order as any).specifications && (
+                          <div className="mt-3">
+                            <p className="text-sm font-semibold text-gray-700">Specifications:</p>
+                            <p className="text-sm text-gray-600">{(order as any).specifications}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Order Items */}
+                    {order.order_items && order.order_items.length > 0 && (
+                      <div>
+                        <h4 className="font-bold text-gray-900 mb-4">
+                          {isQuote(order as any) ? 'Quote Items' : 'Order Items'}
+                        </h4>
+                        <div className="space-y-3">
+                          {order.order_items.map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center">
+                              <div>
+                                <p className="font-semibold text-gray-900">{item.product_name}</p>
+                                <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                              </div>
+                              <p className="font-bold text-gray-900">
+                                £{item.total_price.toFixed(2)}
+                              </p>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+
+                    {/* No items message for quotes without pricing */}
+                    {(!order.order_items || order.order_items.length === 0) && isQuote(order as any) && (
+                      <p className="text-sm text-gray-500 italic">
+                        This quote is pending pricing from our team.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
