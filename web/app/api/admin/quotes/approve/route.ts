@@ -6,11 +6,21 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(request: NextRequest) {
   try {
+    // Get auth token from request header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Unauthorized - No auth token' }, { status: 401 });
+    }
+
+    // Create client with service key for admin operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Get user from the auth token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 });
     }
 
     // Check if user is admin/operator
@@ -21,7 +31,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!profile || !['admin', 'operator'].includes(profile.role)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden - Not admin/operator' }, { status: 403 });
     }
 
     const body = await request.json();

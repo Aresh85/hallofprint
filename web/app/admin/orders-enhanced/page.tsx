@@ -833,9 +833,13 @@ export default function EnhancedOrdersDashboard() {
                             }
                             if (confirm('Approve this quote? This will calculate totals with 20% VAT and mark it ready for payment.')) {
                               try {
+                                const { data: { session } } = await supabase.auth.getSession();
                                 const response = await fetch('/api/admin/quotes/approve', {
                                   method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
+                                  headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${session?.access_token}`
+                                  },
                                   body: JSON.stringify({
                                     order_id: order.id,
                                     tax_included: true,
