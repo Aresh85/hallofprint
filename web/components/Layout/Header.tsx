@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, X, ShoppingCart, Printer, User, LogOut, Settings } from 'lucide-react';
+import { Menu, X, ShoppingCart, Printer, User, LogOut, Settings, Package } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { supabase } from '@/lib/auth';
 
@@ -13,6 +13,7 @@ export default function Header() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userName, setUserName] = useState<string>('');
+  const [userRole, setUserRole] = useState<string>('');
   const { itemCount } = useCart();
 
   useEffect(() => {
@@ -31,14 +32,15 @@ export default function Header() {
     setUser(user);
 
     if (user) {
-      // Get user profile for name
+      // Get user profile for name and role
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('full_name')
+        .select('full_name, role')
         .eq('id', user.id)
         .single();
 
       setUserName(profile?.full_name || user.email?.split('@')[0] || 'User');
+      setUserRole(profile?.role || '');
     }
   };
 
@@ -148,6 +150,16 @@ export default function Header() {
                           <Settings className="w-4 h-4" />
                           <span>Orders</span>
                         </Link>
+                        {(userRole === 'admin' || userRole === 'operator') && (
+                          <Link
+                            href="/admin/orders-enhanced"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center space-x-2 px-4 py-2 text-indigo-700 hover:bg-indigo-50 transition-colors font-semibold"
+                          >
+                            <Package className="w-4 h-4" />
+                            <span>Orders Enhanced</span>
+                          </Link>
+                        )}
                         <hr className="my-2" />
                         <button
                           onClick={handleLogout}

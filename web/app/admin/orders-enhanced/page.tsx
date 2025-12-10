@@ -1268,16 +1268,57 @@ export default function EnhancedOrdersDashboard() {
                 </div>
               </div>
 
-              <div className="flex space-x-3">
+              <div className="flex flex-col space-y-2">
                 <button
                   onClick={() => addSundry(sundryModal)}
-                  className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold"
+                  className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold"
                 >
-                  Add Sundry
+                  ✅ Add Sundry & Close
+                </button>
+                <button
+                  onClick={() => {
+                    if (!sundryDescription || !sundryPrice) {
+                      alert('Please fill in all sundry fields');
+                      return;
+                    }
+                    // Add sundry without closing modal
+                    const addSundryKeepOpen = async () => {
+                      try {
+                        const unitPrice = parseFloat(sundryPrice);
+                        const totalPrice = unitPrice * sundryQuantity;
+                        const { data: { user } } = await supabase.auth.getUser();
+                        const { error } = await supabase
+                          .from('order_sundries')
+                          .insert({
+                            order_id: sundryModal,
+                            description: sundryDescription,
+                            quantity: sundryQuantity,
+                            unit_price: unitPrice,
+                            total_price: totalPrice,
+                            added_by: user?.id
+                          });
+                        if (error) throw error;
+                        // Clear form but keep modal open
+                        setSundryDescription('');
+                        setSundryQuantity(1);
+                        setSundryPrice('');
+                        setSundryTaxRate(20);
+                        loadOrders();
+                        alert('Sundry added! Add another or close.');
+                      } catch (error) {
+                        console.error('Error adding sundry:', error);
+                        alert('Failed to add sundry');
+                      }
+                    };
+                    addSundryKeepOpen();
+                  }}
+                  className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-semibold"
+                >
+                  ➕ Add Another Sundry
                 </button>
                 <button
                   onClick={() => setSundryModal(null)}
-                  className="px-6 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
+                  className="w-full bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
                 >
                   Cancel
                 </button>
