@@ -215,17 +215,45 @@ export default function RequestQuotePage() {
               Thank you for your quote request. Our team will review your requirements and get back to you within the hour during business hours (Monday-Friday, 9am-5pm).
             </p>
             
+            {/* File Upload Status */}
+            {uploadedFiles.length > 0 ? (
+              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-6">
+                <div className="flex items-center space-x-2 mb-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <p className="text-sm font-bold text-green-800">
+                    Artwork files uploaded! ✓
+                  </p>
+                </div>
+                <p className="text-sm text-gray-700">
+                  We have received {uploadedFiles.length} file{uploadedFiles.length > 1 ? 's' : ''} and can begin reviewing your quote immediately.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
+                <p className="text-sm text-gray-700 mb-2">
+                  <strong>📄 No artwork files uploaded yet?</strong>
+                </p>
+                <p className="text-sm text-gray-600 mb-3">
+                  No problem! You can upload your files later using our{' '}
+                  <Link href="/upload-artwork" className="text-indigo-600 hover:text-indigo-800 font-semibold underline">
+                    File Upload page
+                  </Link>
+                  {' '}or wait for our team to reach out after reviewing your quote.
+                </p>
+              </div>
+            )}
+
             {isLoggedIn && (
               <div className="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4 mb-6">
                 <p className="text-sm text-gray-700 mb-3">
-                  <strong>Track your quote:</strong> Visit My Quotes to see the status of this and all your quote requests. Once approved, you can make payment directly from there.
+                  <strong>Track your quote:</strong> Visit your orders page to see the status of this quote. Once approved and priced, you can make payment directly from there.
                 </p>
                 <Link 
-                  href="/account/quotes"
+                  href="/account/orders"
                   className="inline-flex items-center justify-center bg-indigo-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
                 >
                   <Briefcase className="w-5 h-5 mr-2" />
-                  View My Quotes
+                  View My Orders
                 </Link>
               </div>
             )}
