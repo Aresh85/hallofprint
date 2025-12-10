@@ -32,6 +32,11 @@ ADD COLUMN IF NOT EXISTS price_match_requested BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS competitor_price DECIMAL(10,2),
 ADD COLUMN IF NOT EXISTS competitor_url TEXT;
 
+-- Add customer fields
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS company_name TEXT,
+ADD COLUMN IF NOT EXISTS phone TEXT;
+
 -- Add request fields
 ALTER TABLE orders
 ADD COLUMN IF NOT EXISTS company_account_requested BOOLEAN DEFAULT FALSE;
