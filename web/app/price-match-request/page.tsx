@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Script from 'next/script';
 import { FileText, Home, ChevronRight, CheckCircle, Send, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/auth';
 
@@ -10,7 +9,6 @@ export default function PriceMatchRequestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(false);
-  const [hcaptchaLoaded, setHcaptchaLoaded] = useState(false);
   
   // User data for auto-fill
   const [userName, setUserName] = useState('');
@@ -79,21 +77,7 @@ export default function PriceMatchRequestPage() {
     const formData = new FormData(e.currentTarget);
 
     try {
-      // Send to Web3Forms for email notification
-      const web3FormsResponse = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const web3FormsData = await web3FormsResponse.json();
-
-      if (!web3FormsData.success) {
-        setError(true);
-        setSubmitting(false);
-        return;
-      }
-
-      // Also save to our database via webhook
+      // Submit to our native API which handles both email and database storage
       const webhookData = {
         name: formData.get('name'),
         email: formData.get('email'),
@@ -112,11 +96,15 @@ export default function PriceMatchRequestPage() {
         additionalInfo: formData.get('additionalInfo'),
       };
 
-      await fetch('/api/webhooks/price-match', {
+      const response = await fetch('/api/webhooks/price-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(webhookData),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit request');
+      }
 
       setSubmitted(true);
     } catch (err) {
@@ -221,13 +209,6 @@ export default function PriceMatchRequestPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-8 md:p-12 space-y-6">
-          {/* Web3Forms Access Key */}
-          <input type="hidden" name="access_key" value="fdf2794e-0fa3-4f1d-bcd7-caeecaf62433" />
-          <input type="hidden" name="subject" value="Price Match Request from Hall of Prints" />
-          <input type="hidden" name="from_name" value="Hall of Prints Website" />
-          
-          {/* Web3Forms Bot Protection */}
-          <input type="checkbox" name="botcheck" className="hidden" style={{ display: 'none' }} />
 
           {/* Your Information */}
           <div>
@@ -485,17 +466,6 @@ export default function PriceMatchRequestPage() {
               placeholder="Any additional details that might help us process your request..."
             />
           </div>
-
-          {/* hCaptcha */}
-          <div className="flex justify-center">
-            <div className="h-captcha" data-captcha="true"></div>
-          </div>
-          
-          <Script 
-            src="https://web3forms.com/client/script.js" 
-            strategy="lazyOnload"
-            onLoad={() => setHcaptchaLoaded(true)}
-          />
 
           {/* Submit Button */}
           <div className="pt-4">

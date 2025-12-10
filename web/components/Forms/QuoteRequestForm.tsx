@@ -12,10 +12,6 @@ interface QuoteRequestFormProps {
     }>;
 }
 
-// NOTE: This uses an example endpoint URL. Replace with your actual Web3Forms or Formcarry URL.
-// The NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY must be configured in your .env.local file.
-const FORM_ENDPOINT = 'YOUR_WEB3FORMS_OR_FORMCARRY_ENDPOINT'; // Example: https://api.web3forms.com/submit
-
 export default function QuoteRequestForm({ productName, selections }: QuoteRequestFormProps) {
     const [formData, setFormData] = useState({
         name: '',
@@ -45,28 +41,14 @@ export default function QuoteRequestForm({ productName, selections }: QuoteReque
         setStatus('submitting');
         setMessage('');
 
-        // 1. Prepare data for submission
-        const data = new FormData();
-        // Add form access key (required by Web3Forms and similar services)
-        data.append("access_key", process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || "YOUR_ACCESS_KEY_HERE");
-        data.append("subject", `Quote Request for: ${productName}`);
-        
-        // Append all text fields
-        Object.entries(formData).forEach(([key, value]) => {
-            data.append(key, value);
-        });
-
-        // Append the file if selected
-        if (file) {
-            data.append('attachment', file);
-        }
-
         try {
-            // 2. Submit the form data
-            const response = await fetch(FORM_ENDPOINT, {
+            // Submit the form data to our native API
+            const response = await fetch('/api/forms/quote-request', {
                 method: 'POST',
-                body: data,
-                // Note: No Content-Type header is needed when using FormData
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
             });
 
             const result = await response.json();
@@ -74,7 +56,14 @@ export default function QuoteRequestForm({ productName, selections }: QuoteReque
             if (response.ok && result.success) {
                 setStatus('success');
                 setMessage('Quote request sent successfully! We will contact you shortly.');
-                setFormData(prev => ({ ...prev, details: '', phone: '' })); // Clear non-essential fields
+                setFormData({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    details: '',
+                    product: productName,
+                    configuration: JSON.stringify(selections, null, 2),
+                });
                 setFile(null);
             } else {
                 throw new Error(result.message || 'Submission failed.');
@@ -148,19 +137,12 @@ export default function QuoteRequestForm({ productName, selections }: QuoteReque
                 className="p-3 w-full border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none"
             />
 
-            {/* File Attachment (Optional) */}
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                <FileText className="w-4 h-4 mr-2" />
-                Attach Artwork/Spec Sheet (Optional, up to 10MB)
-            </label>
-            <input 
-                type="file" 
-                name="attachment"
-                onChange={handleFileChange}
-                accept=".pdf,.ai,.psd,.zip" // Accepts common upload types for quotes
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-            />
-            {file && <p className="text-xs text-gray-500 mt-1">Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</p>}
+            {/* Note: File attachments can be added later via the upload-file page or email */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                    <strong>Need to attach files?</strong> After submitting, you can upload artwork files via our <a href="/upload-file" className="underline font-semibold">File Upload page</a> or reply to our confirmation email with your files attached.
+                </p>
+            </div>
 
 
             {/* Submission Button */}
