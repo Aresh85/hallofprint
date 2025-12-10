@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/auth';
-import { User, Package, MapPin, Settings, LogOut, Mail, FileText, ImageIcon, Briefcase } from 'lucide-react';
+import { User, Package, MapPin, Settings, LogOut, Mail, FileText, ImageIcon, Briefcase, Tag } from 'lucide-react';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -337,6 +337,19 @@ export default function AccountPage() {
                   <div>
                     <h3 className="font-bold text-gray-900">Quote Requests</h3>
                     <p className="text-sm text-gray-600">Manage quote requests</p>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Sundries Management */}
+              <Link href="/admin/sundries" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-yellow-200">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-yellow-600 p-3 rounded-lg">
+                    <Tag className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Sundries Templates</h3>
+                    <p className="text-sm text-gray-600">Manage pricing items</p>
                   </div>
                 </div>
               </Link>

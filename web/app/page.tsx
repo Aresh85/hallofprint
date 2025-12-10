@@ -36,7 +36,7 @@ export default function Home() {
               Need a specialised or large-volume print job? We're here to help.
             </p>
             <Link 
-              href="/products" 
+              href="/request-quote" 
               className="inline-block px-6 py-2 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition-colors"
             >
               Get a Custom Quote
