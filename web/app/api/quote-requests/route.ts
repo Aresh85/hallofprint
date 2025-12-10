@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
           
           // Customer info
           user_id: userId,
-          guest_email: email,
+          customer_email: email,
           customer_name,
           company_name: company_name || null,
           phone: phone || null,
