@@ -149,13 +149,28 @@ export default function OrdersPage() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="text-lg font-bold text-gray-900">
                           {isQuote(order as any) ? 'Quote' : 'Order'} #{order.order_number}
                         </h3>
                         {isQuote(order as any) && (
                           <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded">
                             💬 QUOTE
+                          </span>
+                        )}
+                        {/* Production Status */}
+                        {(order as any).production_status && (
+                          <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
+                            (order as any).production_status === 'not_started' ? 'bg-gray-100 text-gray-800' :
+                            (order as any).production_status === 'design_in_progress' ? 'bg-purple-100 text-purple-800' :
+                            (order as any).production_status === 'awaiting_proof_approval' ? 'bg-yellow-100 text-yellow-800' :
+                            (order as any).production_status === 'printing' ? 'bg-blue-100 text-blue-800' :
+                            (order as any).production_status === 'finishing' ? 'bg-cyan-100 text-cyan-800' :
+                            (order as any).production_status === 'ready_for_dispatch' ? 'bg-green-100 text-green-800' :
+                            (order as any).production_status === 'dispatched' ? 'bg-emerald-100 text-emerald-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {(order as any).production_status.replace(/_/g, ' ').toUpperCase()}
                           </span>
                         )}
                       </div>

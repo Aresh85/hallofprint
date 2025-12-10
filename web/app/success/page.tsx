@@ -169,7 +169,7 @@ function SuccessContent() {
             <p className="text-sm text-gray-500">Next Action:</p>
             <p className="font-semibold text-gray-900 flex items-center">
               <Printer className="w-4 h-4 mr-1 text-gray-600" />
-              {quoteId && quoteHasFiles ? 'Ready for Production' : 'Awaiting File Upload'}
+              {quoteHasFiles ? 'Team Review' : 'Awaiting File Upload'}
             </p>
           </div>
         </div>

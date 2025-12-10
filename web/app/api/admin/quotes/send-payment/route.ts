@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Create Stripe checkout session
+    // Create Stripe checkout session with tax breakdown
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -54,9 +54,9 @@ export async function POST(request: NextRequest) {
             currency: 'gbp',
             product_data: {
               name: `Quote #${order.order_number}`,
-              description: order.project_title || 'Custom Print Quote',
+              description: `${order.project_title || 'Custom Print Quote'} (Subtotal: £${order.subtotal.toFixed(2)} + VAT: £${order.tax.toFixed(2)})`,
             },
-            unit_amount: Math.round(order.total * 100), // Convert to pence
+            unit_amount: Math.round(order.total * 100), // Total in pence (including VAT)
           },
           quantity: 1,
         },
@@ -69,6 +69,9 @@ export async function POST(request: NextRequest) {
         order_id: order.id,
         order_number: order.order_number,
         type: 'quote_payment',
+        subtotal: order.subtotal.toString(),
+        tax: order.tax.toString(),
+        tax_rate: (order.tax_rate || 20).toString(),
       },
     });
 
