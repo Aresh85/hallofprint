@@ -140,7 +140,7 @@ export default function ArtworkDashboard() {
   };
 
   const convertToOrder = async (submissionId: string) => {
-    if (!confirm('Convert this artwork submission into an order? This will create a new order entry.')) {
+    if (!confirm('Convert this artwork submission into an order? This will create a new order entry that will appear in the orders dashboard.')) {
       return;
     }
 
@@ -148,22 +148,77 @@ export default function ArtworkDashboard() {
       const submission = submissions.find(s => s.id === submissionId);
       if (!submission) return;
 
-      // For now, just mark as converted - you would implement full order creation logic
-      const { error } = await supabase
+      // Generate order number
+      const orderNumber = `HP-ART-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+      // Create the order in the orders table
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          order_number: orderNumber,
+          user_id: submission.user_id || null,
+          guest_email: submission.user_id ? null : submission.customer_email,
+          status: 'pending',
+          payment_status: 'pending',
+          
+          // Customer Info
+          customer_name: submission.customer_name,
+          customer_email: submission.customer_email,
+          customer_phone: submission.customer_phone || '',
+          
+          // Placeholder shipping address - admin will need to update
+          shipping_address_line1: 'TO BE UPDATED',
+          shipping_address_line2: '',
+          shipping_city: 'TO BE UPDATED',
+          shipping_county: '',
+          shipping_postcode: 'TO BE UPDATED',
+          shipping_country: 'United Kingdom',
+          
+          // Order Details - placeholder amounts
+          subtotal: 0,
+          shipping_cost: 0,
+          tax: 0,
+          total: 0,
+          currency: 'GBP',
+          
+          // Artwork info
+          customer_notes: submission.notes || 'Created from artwork submission',
+          operator_notes: `Converted from artwork submission. File: ${submission.file_name}. Artwork URL: ${submission.file_url || 'Not available'}`,
+          
+          // Production status
+          production_status: 'design_in_progress',
+          priority: 'normal',
+        })
+        .select()
+        .single();
+
+      if (orderError) {
+        console.error('Error creating order:', orderError);
+        throw orderError;
+      }
+
+      console.log('✅ Order created:', order);
+
+      // Update artwork submission with the order ID
+      const { error: updateError } = await supabase
         .from('artwork_submissions')
         .update({
           status: 'converted_to_order',
+          converted_order_id: order.id,
           updated_at: new Date().toISOString()
         })
         .eq('id', submissionId);
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('Error updating submission:', updateError);
+        // Don't throw - order was created successfully
+      }
 
       loadSubmissions();
-      alert('Submission converted! You can now create a full order from this.');
+      alert(`✅ Order ${orderNumber} created successfully! You can now find it in the orders dashboard and add pricing/shipping details.`);
     } catch (error) {
       console.error('Error converting submission:', error);
-      alert('Failed to convert submission');
+      alert('Failed to convert submission to order. Please try again.');
     }
   };
 
