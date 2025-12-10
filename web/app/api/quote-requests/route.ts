@@ -20,7 +20,16 @@ export async function POST(request: NextRequest) {
       deadline,
       specifications,
       file_urls,
+      // Address fields
+      address_line1,
+      address_line2,
+      city,
+      county,
+      postcode,
+      country,
+      // Price match fields
       price_match_requested,
+      competitor_price,
       competitor_url,
       company_account_requested,
     } = body;
@@ -51,7 +60,16 @@ export async function POST(request: NextRequest) {
           deadline: deadline || null,
           specifications: specifications || null,
           file_urls: file_urls || null,
+          // Address fields
+          address_line1: address_line1 || null,
+          address_line2: address_line2 || null,
+          city: city || null,
+          county: county || null,
+          postcode: postcode || null,
+          country: country || 'United Kingdom',
+          // Price match fields
           price_match_requested: price_match_requested || false,
+          competitor_price: competitor_price || null,
           competitor_url: competitor_url || null,
           company_account_requested: company_account_requested || false,
           status: 'pending',
@@ -104,9 +122,17 @@ export async function POST(request: NextRequest) {
           </ul>
           ` : ''}
           
+          <h3>Delivery Address:</h3>
+          <p>${address_line1 || 'Not provided'}</p>
+          ${address_line2 ? `<p>${address_line2}</p>` : ''}
+          <p>${city || ''}, ${postcode || ''}</p>
+          ${county ? `<p>${county}</p>` : ''}
+          <p>${country || 'United Kingdom'}</p>
+          
           ${price_match_requested ? `
           <h3>Price Match Request:</h3>
           <p><strong>Customer requested price matching</strong></p>
+          ${competitor_price ? `<p><strong>Competitor Price:</strong> £${competitor_price} (excl. VAT)</p>` : ''}
           ${competitor_url ? `<p><strong>Competitor URL:</strong> <a href="${competitor_url}">${competitor_url}</a></p>` : ''}
           ` : ''}
           
