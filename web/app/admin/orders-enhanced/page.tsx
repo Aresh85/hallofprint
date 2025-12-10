@@ -819,6 +819,114 @@ export default function EnhancedOrdersDashboard() {
                   </div>
                 )}
 
+                {/* Quote Action Buttons */}
+                {(order as any).order_type === 'quote' && order.status === 'pending' && (
+                  <div className="mt-4 border-t pt-4">
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-300">
+                      <p className="text-sm font-bold text-gray-900 mb-3">💰 QUOTE ACTIONS</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={async () => {
+                            if (!order.order_sundries?.length) {
+                              alert('Please add sundries (pricing) first! Click "View Details" below and then "+ Add Sundry"');
+                              return;
+                            }
+                            if (confirm('Approve this quote? This will calculate totals with 20% VAT and mark it ready for payment.')) {
+                              try {
+                                const response = await fetch('/api/admin/quotes/approve', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    order_id: order.id,
+                                    tax_included: true,
+                                    tax_rate: 20
+                                  })
+                                });
+                                const data = await response.json();
+                                if (response.ok) {
+                                  alert(`Quote approved! Total: £${data.total.toFixed(2)}`);
+                                  window.location.reload();
+                                } else {
+                                  alert('Error: ' + data.error);
+                                }
+                              } catch (error) {
+                                alert('Failed to approve quote');
+                              }
+                            }
+                          }}
+                          className="bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 font-semibold text-sm"
+                        >
+                          ✅ Approve & Price Quote
+                        </button>
+                        <button
+                          onClick={async () => {
+                            const reason = prompt('Rejection reason (optional):');
+                            if (confirm('Are you sure you want to reject this quote?')) {
+                              try {
+                                const response = await fetch('/api/admin/quotes/reject', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    order_id: order.id,
+                                    rejection_reason: reason || ''
+                                  })
+                                });
+                                if (response.ok) {
+                                  alert('Quote rejected');
+                                  window.location.reload();
+                                } else {
+                                  alert('Failed to reject quote');
+                                }
+                              } catch (error) {
+                                alert('Failed to reject quote');
+                              }
+                            }
+                          }}
+                          className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 font-semibold text-sm"
+                        >
+                          ❌ Reject Quote
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Send to Payment Button */}
+                {(order as any).order_type === 'quote' && order.status === 'quote_priced' && (
+                  <div className="mt-4 border-t pt-4">
+                    <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
+                      <p className="text-sm font-bold text-indigo-900 mb-2">💳 QUOTE READY FOR PAYMENT</p>
+                      <p className="text-xs text-gray-600 mb-3">Total: £{order.total.toFixed(2)} (incl. VAT)</p>
+                      <button
+                        onClick={async () => {
+                          if (confirm('Send payment link to customer? This will email them with the quote total and payment link.')) {
+                            try {
+                              const response = await fetch('/api/admin/quotes/send-payment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ order_id: order.id })
+                              });
+                              if (response.ok) {
+                                alert('Payment link sent to customer successfully!');
+                                window.location.reload();
+                              } else {
+                                const data = await response.json();
+                                alert('Error: ' + data.error);
+                              }
+                            } catch (error) {
+                              alert('Failed to send payment link');
+                            }
+                          }
+                        }}
+                        disabled={!!order.stripe_payment_intent_id}
+                        className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      >
+                        {order.stripe_payment_intent_id ? '✅ Payment Link Already Sent' : '📧 Send Payment Link to Customer'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Customer Info & Address */}
                 <div className="grid md:grid-cols-2 gap-4 pt-4 border-t mb-4">
                   <div>
