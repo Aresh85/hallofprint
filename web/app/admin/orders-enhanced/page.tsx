@@ -1340,18 +1340,43 @@ export default function EnhancedOrdersDashboard() {
 
                     {/* Total Breakdown */}
                     <div className="border-t pt-4 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Subtotal:</span>
-                        <span className="font-semibold">£{order.subtotal.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">VAT (20%):</span>
-                        <span className="font-semibold">£{order.tax.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-lg font-bold border-t pt-2">
-                        <span>Total:</span>
-                        <span>£{order.total.toFixed(2)}</span>
-                      </div>
+                      {(() => {
+                        // Calculate preview totals for un-priced quotes
+                        const isUnpricedQuote = ['quote_pending', 'quote_reviewed'].includes(order.status) && order.subtotal === 0;
+                        const sundries = order.order_sundries || [];
+                        const calculatedSubtotal = isUnpricedQuote 
+                          ? sundries.reduce((sum: number, item: any) => sum + item.total_price, 0)
+                          : order.subtotal;
+                        const calculatedTax = isUnpricedQuote
+                          ? calculatedSubtotal * 0.20  // Preview 20% VAT
+                          : order.tax;
+                        const calculatedTotal = calculatedSubtotal + calculatedTax;
+                        
+                        return (
+                          <>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Subtotal:</span>
+                              <span className="font-semibold">£{calculatedSubtotal.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">
+                                VAT (20%):
+                                {isUnpricedQuote && <span className="text-xs text-orange-600 ml-1">(Preview)</span>}
+                              </span>
+                              <span className="font-semibold">£{calculatedTax.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-lg font-bold border-t pt-2">
+                              <span>Total:</span>
+                              <span>£{calculatedTotal.toFixed(2)}</span>
+                            </div>
+                            {isUnpricedQuote && calculatedSubtotal > 0 && (
+                              <p className="text-xs text-orange-600 italic">
+                                * Preview calculation. Click "Approve & Price Quote" to finalize.
+                              </p>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
