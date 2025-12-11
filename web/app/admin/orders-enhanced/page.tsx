@@ -714,7 +714,6 @@ export default function EnhancedOrdersDashboard() {
                         {formatDate(order.created_at)}
                       </div>
                       <div className="flex items-center text-gray-900 font-semibold">
-                        <DollarSign className="w-4 h-4 mr-1" />
                         £{order.total.toFixed(2)}
                       </div>
                     </div>
