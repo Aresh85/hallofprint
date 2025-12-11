@@ -2,8 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FileText, Home, ChevronRight, CheckCircle, Send, AlertCircle, Briefcase } from 'lucide-react';
+import { FileText, Home, ChevronRight, CheckCircle, Send, AlertCircle, Briefcase, MapPin } from 'lucide-react';
 import { supabase } from '@/lib/auth';
+
+type Address = {
+  id: string;
+  address_line1: string;
+  address_line2?: string;
+  city: string;
+  county?: string;
+  postcode: string;
+  country: string;
+  is_default: boolean;
+};
 
 export default function RequestQuotePage() {
   const [submitting, setSubmitting] = useState(false);
@@ -12,6 +23,8 @@ export default function RequestQuotePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasCompanyAccount, setHasCompanyAccount] = useState(false);
   const [existingCompanyName, setExistingCompanyName] = useState('');
+  const [userAddresses, setUserAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
   const [formData, setFormData] = useState({
     customer_name: '',
     company_name: '',
@@ -79,17 +92,22 @@ export default function RequestQuotePage() {
           console.log('Profile not found:', profileError);
         }
 
-        // Get default phone from addresses
+        // Load user's addresses
         try {
-          const { data: address } = await supabase
+          const { data: addresses } = await supabase
             .from('user_addresses')
-            .select('phone')
+            .select('*')
             .eq('user_id', user.id)
-            .eq('is_default', true)
-            .single();
+            .order('is_default', { ascending: false });
 
-          if (address?.phone) {
-            newFormData.phone = address.phone;
+          if (addresses && addresses.length > 0) {
+            setUserAddresses(addresses as Address[]);
+            
+            // Get phone from default address if available
+            const defaultAddress = addresses.find((addr: Address) => addr.is_default);
+            if (defaultAddress && (defaultAddress as any).phone) {
+              newFormData.phone = (defaultAddress as any).phone;
+            }
           }
         } catch (addressError) {
           console.log('Address not found:', addressError);
@@ -110,6 +128,38 @@ export default function RequestQuotePage() {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const handleAddressSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const addressId = e.target.value;
+    setSelectedAddressId(addressId);
+    
+    if (addressId === '') {
+      // Clear address fields if "Enter new address" is selected
+      setFormData(prev => ({
+        ...prev,
+        address_line1: '',
+        address_line2: '',
+        city: '',
+        county: '',
+        postcode: '',
+        country: 'United Kingdom',
+      }));
+    } else {
+      // Fill in the selected address
+      const selectedAddress = userAddresses.find(addr => addr.id === addressId);
+      if (selectedAddress) {
+        setFormData(prev => ({
+          ...prev,
+          address_line1: selectedAddress.address_line1,
+          address_line2: selectedAddress.address_line2 || '',
+          city: selectedAddress.city,
+          county: selectedAddress.county || '',
+          postcode: selectedAddress.postcode,
+          country: selectedAddress.country,
+        }));
+      }
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -407,14 +457,11 @@ export default function RequestQuotePage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    disabled={isLoggedIn}
-                    className={`w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors ${
-                      isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''
-                    }`}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
                     placeholder="07123 456789"
                   />
                   {isLoggedIn && formData.phone && (
-                    <p className="text-xs text-green-600 mt-1">✓ Auto-filled from your account</p>
+                    <p className="text-xs text-gray-500 mt-1">Auto-filled from your account (you can change if needed)</p>
                   )}
                 </div>
               </div>
@@ -425,6 +472,39 @@ export default function RequestQuotePage() {
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Delivery Address</h2>
             <div className="space-y-4">
+              {/* Address Selector - Only for logged in users with addresses */}
+              {isLoggedIn && userAddresses.length > 0 && (
+                <div className="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4">
+                  <label htmlFor="saved_address" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Choose from your saved addresses
+                  </label>
+                  <select
+                    id="saved_address"
+                    value={selectedAddressId}
+                    onChange={handleAddressSelection}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="">Enter a new address below...</option>
+                    {userAddresses.map((address) => (
+                      <option key={address.id} value={address.id}>
+                        {address.is_default && '⭐ '}
+                        {address.address_line1}
+                        {address.address_line2 && `, ${address.address_line2}`}
+                        , {address.city}, {address.postcode}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-600 mt-2">
+                    Select a saved address or enter a new one below. You can{' '}
+                    <Link href="/account/addresses" className="text-indigo-600 hover:text-indigo-800 underline">
+                      manage your addresses
+                    </Link>
+                    {' '}in your account.
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label htmlFor="address_line1" className="block text-sm font-semibold text-gray-700 mb-2">
                   Address Line 1 *
