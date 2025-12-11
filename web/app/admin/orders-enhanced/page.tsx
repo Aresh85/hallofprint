@@ -1342,21 +1342,25 @@ export default function EnhancedOrdersDashboard() {
                     {/* Total Breakdown */}
                     <div className="border-t pt-4 space-y-2">
                       {(() => {
-                        // Calculate preview totals for un-priced quotes
-                        const isUnpricedQuote = ['quote_pending', 'quote_reviewed'].includes(order.status) && order.subtotal === 0;
                         const sundries = order.order_sundries || [];
-                        const calculatedSubtotal = isUnpricedQuote 
+                        
+                        // Always calculate from sundries if they exist, otherwise use order values
+                        const hasSundries = sundries.length > 0;
+                        const calculatedSubtotal = hasSundries
                           ? sundries.reduce((sum: number, item: any) => sum + item.total_price, 0)
                           : order.subtotal;
                         
                         // Calculate tax based on individual sundry tax rates
-                        const calculatedTax = isUnpricedQuote
+                        const calculatedTax = hasSundries
                           ? sundries.reduce((sum: number, item: any) => {
-                              const taxRate = item.tax_rate || 20; // Default to 20% if not set
+                              const taxRate = item.tax_rate !== undefined && item.tax_rate !== null ? item.tax_rate : 20;
                               return sum + (item.total_price * (taxRate / 100));
                             }, 0)
                           : order.tax;
                         const calculatedTotal = calculatedSubtotal + calculatedTax;
+                        
+                        // Show preview label if order hasn't been formally priced yet
+                        const isUnpricedQuote = ['quote_pending', 'quote_reviewed'].includes(order.status) && order.subtotal === 0;
                         
                         return (
                           <>
