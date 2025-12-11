@@ -997,9 +997,24 @@ export default function EnhancedOrdersDashboard() {
                     {/* File Status */}
                     <div className="mt-2">
                       {order.file_urls && order.file_urls.length > 0 ? (
-                        <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">
-                          ✓ {order.file_urls.length} file(s)
-                        </span>
+                        <div>
+                          <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded mb-2">
+                            ✓ {order.file_urls.length} file(s)
+                          </span>
+                          <div className="mt-1 space-y-1">
+                            {order.file_urls.map((url: string, idx: number) => (
+                              <a
+                                key={idx}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block text-xs text-indigo-600 hover:text-indigo-800 hover:underline"
+                              >
+                                📄 View File {idx + 1}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
                       ) : (
                         <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">
                           ⏳ Pending upload
