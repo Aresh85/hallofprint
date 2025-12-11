@@ -43,6 +43,7 @@ export default function UploadArtworkPage() {
   const [notes, setNotes] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  const [customerMobile, setCustomerMobile] = useState('');
   const [userAddresses, setUserAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
 
@@ -65,13 +66,14 @@ export default function UploadArtworkPage() {
       // Get user profile
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('full_name, email')
+        .select('full_name, email, mobile')
         .eq('id', user.id)
         .single();
 
       if (profile) {
         setCustomerName(profile.full_name || '');
         setCustomerEmail(user.email || profile.email || '');
+        setCustomerMobile(profile.mobile || '');
       }
 
       // Load user's orders with job titles (exclude dispatched)
@@ -396,7 +398,7 @@ export default function UploadArtworkPage() {
         {/* Contact Information - Pre-filled from Profile */}
         <div className="mb-6 bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Your Contact Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
                 Name
@@ -415,6 +417,17 @@ export default function UploadArtworkPage() {
               <input
                 type="email"
                 value={customerEmail}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Mobile
+              </label>
+              <input
+                type="tel"
+                value={customerMobile}
                 disabled
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
               />
