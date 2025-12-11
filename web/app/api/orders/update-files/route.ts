@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Update file URLs (append to existing)
+    // Update file URLs (append to existing) - LEGACY
     const existingFiles = order.file_urls || [];
     const updatedFiles = [...existingFiles, ...new_file_urls];
 
@@ -46,6 +46,40 @@ export async function POST(request: NextRequest) {
       console.error('Update error:', updateError);
       return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
     }
+
+    // NEW: Save file metadata to order_files table
+    const fileMetadata = new_file_urls.map((url: string) => {
+      // Extract filename from URL
+      const urlParts = url.split('/');
+      const filename = urlParts[urlParts.length - 1];
+      
+      // Try to determine file type from extension
+      const extension = filename.split('.').pop()?.toLowerCase() || '';
+      let fileType = 'application/octet-stream';
+      
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
+        fileType = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
+      } else if (['pdf'].includes(extension)) {
+        fileType = 'application/pdf';
+      } else if (['ai', 'eps'].includes(extension)) {
+        fileType = `application/${extension}`;
+      } else if (['psd'].includes(extension)) {
+        fileType = 'image/vnd.adobe.photoshop';
+      }
+
+      return {
+        order_id,
+        file_url: url,
+        file_name: filename,
+        file_type: fileType,
+        file_size: 0, // We don't have size info from URL
+        uploaded_by: user_id,
+        uploaded_at: new Date().toISOString(),
+      };
+    });
+
+    // Insert file metadata (ignore errors if table doesn't exist yet)
+    await supabase.from('order_files').insert(fileMetadata);
 
     // Log activity
     await supabase.from('order_activity_log').insert({
