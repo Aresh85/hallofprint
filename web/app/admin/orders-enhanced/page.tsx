@@ -65,6 +65,18 @@ type Order = {
     created_at: string;
     created_by?: string;
   }>;
+  order_files?: Array<{
+    id: string;
+    file_url: string;
+    file_name: string;
+    file_type: string;
+    file_size: number;
+    uploaded_by: string;
+    uploaded_at: string;
+    uploader?: {
+      full_name: string;
+    };
+  }>;
 };
 
 export default function EnhancedOrdersDashboard() {
@@ -173,6 +185,16 @@ export default function EnhancedOrdersDashboard() {
             description,
             created_at,
             created_by
+          ),
+          order_files (
+            id,
+            file_url,
+            file_name,
+            file_type,
+            file_size,
+            uploaded_by,
+            uploaded_at,
+            uploader:uploaded_by (full_name)
           )
         `)
         .order('created_at', { ascending: false });
@@ -471,6 +493,14 @@ export default function EnhancedOrdersDashboard() {
   const isOverdue = (dueDate?: string) => {
     if (!dueDate) return false;
     return new Date(dueDate) < new Date();
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   if (loading) {
@@ -1003,12 +1033,38 @@ export default function EnhancedOrdersDashboard() {
                       <p className="text-sm text-gray-600">{order.customer_phone}</p>
                     )}
                     
-                    {/* File Status */}
+                    {/* File Status with Metadata */}
                     <div className="mt-2">
-                      {order.file_urls && order.file_urls.length > 0 ? (
+                      {order.order_files && order.order_files.length > 0 ? (
                         <div>
                           <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded mb-2">
-                            ✓ {order.file_urls.length} file(s)
+                            ✓ {order.order_files.length} file(s)
+                          </span>
+                          <div className="mt-1 space-y-2">
+                            {order.order_files.map((file, idx: number) => (
+                              <div key={file.id} className="bg-white p-2 rounded border border-gray-200">
+                                <a
+                                  href={file.file_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline mb-1"
+                                >
+                                  📄 {file.file_name}
+                                </a>
+                                <div className="text-xs text-gray-600 space-y-0.5">
+                                  <p>Type: {file.file_type || 'Unknown'}</p>
+                                  <p>Size: {formatFileSize(file.file_size)}</p>
+                                  <p>Uploaded: {formatDate(file.uploaded_at)}</p>
+                                  <p>By: {file.uploader?.full_name || 'Unknown'}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : order.file_urls && order.file_urls.length > 0 ? (
+                        <div>
+                          <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded mb-2">
+                            ✓ {order.file_urls.length} file(s) (legacy)
                           </span>
                           <div className="mt-1 space-y-1">
                             {order.file_urls.map((url: string, idx: number) => (
