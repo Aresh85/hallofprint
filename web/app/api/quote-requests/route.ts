@@ -27,6 +27,9 @@ export async function POST(request: NextRequest) {
       county,
       postcode,
       country,
+      // Delivery contact fields
+      delivery_contact_name,
+      delivery_contact_number,
       // Price match fields
       price_match_requested,
       competitor_price,
@@ -75,6 +78,10 @@ export async function POST(request: NextRequest) {
           shipping_county: county || null,
           shipping_postcode: postcode || null,
           shipping_country: country || 'United Kingdom',
+          
+          // Delivery contact
+          delivery_contact_name: delivery_contact_name || null,
+          delivery_contact_number: delivery_contact_number || null,
           
           // Project details (NEW FIELDS in orders table)
           project_title,
@@ -193,6 +200,12 @@ export async function POST(request: NextRequest) {
           <p>${city || ''}, ${postcode || ''}</p>
           ${county ? `<p>${county}</p>` : ''}
           <p>${country || 'United Kingdom'}</p>
+          
+          ${delivery_contact_name || delivery_contact_number ? `
+          <h3>📦 Delivery Contact:</h3>
+          ${delivery_contact_name ? `<p><strong>Name:</strong> ${delivery_contact_name}</p>` : ''}
+          ${delivery_contact_number ? `<p><strong>Phone:</strong> ${delivery_contact_number}</p>` : ''}
+          ` : ''}
           
           ${price_match_requested ? `
           <h3>Price Match Request:</h3>
