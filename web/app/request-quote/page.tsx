@@ -344,7 +344,10 @@ export default function RequestQuotePage() {
                     required
                     value={formData.customer_name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                    disabled={isLoggedIn}
+                    className={`w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors ${
+                      isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''
+                    }`}
                     placeholder="John Smith"
                   />
                   {isLoggedIn && formData.customer_name && (
@@ -383,7 +386,10 @@ export default function RequestQuotePage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                    disabled={isLoggedIn}
+                    className={`w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors ${
+                      isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''
+                    }`}
                     placeholder="john@example.com"
                   />
                   {isLoggedIn && formData.email && (
@@ -401,7 +407,10 @@ export default function RequestQuotePage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                    disabled={isLoggedIn}
+                    className={`w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors ${
+                      isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''
+                    }`}
                     placeholder="07123 456789"
                   />
                   {isLoggedIn && formData.phone && (
