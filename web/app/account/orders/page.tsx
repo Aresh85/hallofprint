@@ -571,6 +571,11 @@ export default function OrdersPage() {
                                 <p className="font-semibold text-gray-900">{sundry.description}</p>
                                 <p className="text-sm text-gray-600">
                                   Qty: {sundry.quantity} × £{sundry.unit_price.toFixed(2)}
+                                  {sundry.tax_rate !== undefined && sundry.tax_rate !== null && (
+                                    <span className="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded">
+                                      {sundry.tax_rate === 0 ? 'No VAT' : `${sundry.tax_rate}% VAT`}
+                                    </span>
+                                  )}
                                 </p>
                               </div>
                               <p className="font-bold text-gray-900">£{sundry.total_price.toFixed(2)}</p>
@@ -588,7 +593,23 @@ export default function OrdersPage() {
                           <span className="font-semibold">£{(order as any).subtotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">VAT (20%):</span>
+                          <span className="text-gray-600">
+                            {(() => {
+                              // Determine VAT label based on sundry tax rates
+                              const sundries = (order as any).order_sundries || [];
+                              if (sundries.length > 0) {
+                                const taxRates = sundries.map((s: any) => s.tax_rate !== undefined && s.tax_rate !== null ? s.tax_rate : 20);
+                                const uniqueRates = [...new Set(taxRates)];
+                                if (uniqueRates.length === 1) {
+                                  const rate = uniqueRates[0];
+                                  return rate === 0 ? 'VAT:' : `VAT (${rate}%):`;
+                                } else {
+                                  return 'VAT (Mixed):';
+                                }
+                              }
+                              return 'VAT (20%):';
+                            })()}
+                          </span>
                           <span className="font-semibold">£{(order as any).tax.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-lg font-bold border-t pt-2">
