@@ -115,6 +115,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // NEW: Save file metadata to order_files table
+    if (file_urls && file_urls.length > 0) {
+      const fileMetadata = file_urls.map((url: string) => {
+        // Extract filename from URL
+        const urlParts = url.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        
+        // Try to determine file type from extension
+        const extension = filename.split('.').pop()?.toLowerCase() || '';
+        let fileType = 'application/octet-stream';
+        
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
+          fileType = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
+        } else if (['pdf'].includes(extension)) {
+          fileType = 'application/pdf';
+        } else if (['ai', 'eps'].includes(extension)) {
+          fileType = `application/${extension}`;
+        } else if (['psd'].includes(extension)) {
+          fileType = 'image/vnd.adobe.photoshop';
+        }
+
+        return {
+          order_id: quoteData.id,
+          file_url: url,
+          file_name: filename,
+          file_type: fileType,
+          file_size: 0, // We don't have size info from URL
+          uploaded_by: userId || email, // Use userId if available, otherwise email
+          uploaded_at: new Date().toISOString(),
+        };
+      });
+
+      // Insert file metadata (ignore errors if table doesn't exist yet)
+      await supabase.from('order_files').insert(fileMetadata);
+    }
+
     // Send email notification using Resend
     try {
       await resend.emails.send({
