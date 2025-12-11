@@ -159,6 +159,8 @@ export default function OrdersPage() {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -315,6 +317,19 @@ export default function OrdersPage() {
                       <p className="text-sm text-gray-600">
                         {order.shipping_city}, {order.shipping_postcode}
                       </p>
+                      
+                      {/* Delivery Contact Info */}
+                      {((order as any).delivery_contact_name || (order as any).delivery_contact_number) && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <p className="text-xs text-amber-600 font-semibold mb-1">📦 Delivery Contact</p>
+                          {(order as any).delivery_contact_name && (
+                            <p className="text-sm text-gray-900">{(order as any).delivery_contact_name}</p>
+                          )}
+                          {(order as any).delivery_contact_number && (
+                            <p className="text-sm text-gray-600">{(order as any).delivery_contact_number}</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 

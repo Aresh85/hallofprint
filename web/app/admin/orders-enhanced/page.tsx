@@ -1033,6 +1033,19 @@ export default function EnhancedOrdersDashboard() {
                       <p className="text-sm text-gray-600">{order.customer_phone}</p>
                     )}
                     
+                    {/* Delivery Contact Info */}
+                    {((order as any).delivery_contact_name || (order as any).delivery_contact_number) && (
+                      <div className="mt-2 pt-2 border-t border-gray-200">
+                        <p className="text-xs text-amber-600 font-semibold">📦 Delivery Contact</p>
+                        {(order as any).delivery_contact_name && (
+                          <p className="text-sm text-gray-900">{(order as any).delivery_contact_name}</p>
+                        )}
+                        {(order as any).delivery_contact_number && (
+                          <p className="text-sm text-gray-600">{(order as any).delivery_contact_number}</p>
+                        )}
+                      </div>
+                    )}
+                    
                     {/* File Status with Metadata */}
                     <div className="mt-2">
                       {order.order_files && order.order_files.length > 0 ? (
