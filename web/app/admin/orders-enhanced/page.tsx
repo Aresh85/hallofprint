@@ -1041,16 +1041,32 @@ export default function EnhancedOrdersDashboard() {
                             ✓ {order.order_files.length} file(s)
                           </span>
                           <div className="mt-1 space-y-2">
-                            {order.order_files.map((file, idx: number) => (
-                              <div key={file.id} className="bg-white p-2 rounded border border-gray-200">
-                                <a
-                                  href={file.file_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="block text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline mb-1"
-                                >
-                                  📄 {file.file_name}
-                                </a>
+                            {order.order_files
+                              .sort((a, b) => new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime())
+                              .map((file, idx: number) => (
+                              <div 
+                                key={file.id} 
+                                className={`p-2 rounded border ${
+                                  idx === 0 
+                                    ? 'bg-green-50 border-2 border-green-400 shadow-md' 
+                                    : 'bg-white border border-gray-200'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <a
+                                    href={file.file_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                                  >
+                                    📄 {file.file_name}
+                                  </a>
+                                  {idx === 0 && (
+                                    <span className="px-2 py-0.5 bg-green-600 text-white text-xs font-bold rounded animate-pulse">
+                                      ✨ LATEST
+                                    </span>
+                                  )}
+                                </div>
                                 <div className="text-xs text-gray-600 space-y-0.5">
                                   <p>Type: {file.file_type || 'Unknown'}</p>
                                   <p>Size: {formatFileSize(file.file_size)}</p>
