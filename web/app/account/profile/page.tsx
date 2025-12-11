@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/auth';
-import { User, Mail, Lock, CheckCircle, AlertCircle, ArrowLeft, Shield, Package, FileText } from 'lucide-react';
+import { User, Mail, Lock, CheckCircle, AlertCircle, ArrowLeft, Shield, Package, FileText, Phone } from 'lucide-react';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [userRole, setUserRole] = useState<string>('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,6 +45,7 @@ export default function ProfilePage() {
 
       if (profile) {
         setFullName(profile.full_name || '');
+        setMobile(profile.mobile || '');
         setUserRole(profile.role || 'customer');
       }
     } catch (error) {
@@ -63,7 +65,10 @@ export default function ProfilePage() {
       // Update profile
       const { error: profileError } = await supabase
         .from('user_profiles')
-        .update({ full_name: fullName })
+        .update({ 
+          full_name: fullName,
+          mobile: mobile
+        })
         .eq('id', user.id);
 
       if (profileError) throw profileError;
@@ -181,6 +186,22 @@ export default function ProfilePage() {
                 />
               </div>
               <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Mobile Phone
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="tel"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+                  placeholder="07700 900000"
+                />
+              </div>
             </div>
 
             <button
