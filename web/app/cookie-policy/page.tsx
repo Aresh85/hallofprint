@@ -39,7 +39,7 @@ export default function CookiePolicyPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">2. How We Use Cookies</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Hall of Prints uses cookies and similar tracking technologies to enhance your experience on our website, analyze site usage, and assist in our marketing efforts. We use cookies for the following purposes:
+              Hall of Print uses cookies and similar tracking technologies to enhance your experience on our website, analyze site usage, and assist in our marketing efforts. We use cookies for the following purposes:
             </p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
               <li><strong>Essential Operations:</strong> To enable core functionality such as security, network management, and accessibility</li>
@@ -222,7 +222,7 @@ export default function CookiePolicyPage() {
               If you have questions about our use of cookies or this Cookie Policy, please contact us:
             </p>
             <div className="bg-gray-50 rounded-lg p-6">
-              <p className="text-gray-700"><strong>Hall of Prints</strong></p>
+              <p className="text-gray-700"><strong>Hall of Print</strong></p>
               <p className="text-gray-700">Email: <a href="mailto:support@hallofprint.com" className="text-indigo-600 hover:text-indigo-800">support@hallofprint.com</a></p>
             </div>
           </section>

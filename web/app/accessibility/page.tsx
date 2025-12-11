@@ -32,7 +32,7 @@ export default function AccessibilityPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Commitment to Accessibility</h2>
             <p className="text-gray-700 leading-relaxed">
-              Hall of Prints is committed to ensuring digital accessibility for people of all abilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards to ensure we provide equal access to all our users.
+              Hall of Print is committed to ensuring digital accessibility for people of all abilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards to ensure we provide equal access to all our users.
             </p>
           </section>
 
@@ -208,7 +208,7 @@ export default function AccessibilityPage() {
               We welcome feedback on the accessibility of our website. If you encounter any barriers, have suggestions for improvement, or need assistance accessing any content, please contact us:
             </p>
             <div className="bg-gray-50 rounded-lg p-6">
-              <p className="text-gray-700"><strong>Hall of Prints</strong></p>
+              <p className="text-gray-700"><strong>Hall of Print</strong></p>
               <p className="text-gray-700">Email: <a href="mailto:support@hallofprint.com" className="text-indigo-600 hover:text-indigo-800">support@hallofprint.com</a></p>
             </div>
           </section>

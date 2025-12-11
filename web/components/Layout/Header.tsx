@@ -79,7 +79,7 @@ export default function Header() {
               onClick={closeMobileMenu}
             >
               <Printer className="w-8 h-8" />
-              <span className="text-xl font-bold hidden sm:inline">Hall of Prints</span>
+              <span className="text-xl font-bold hidden sm:inline">Hall of Print</span>
               <span className="text-xl font-bold sm:hidden">HoP</span>
             </Link>
 
@@ -331,7 +331,7 @@ export default function Header() {
               </div>
             )}
             <p className="text-xs text-gray-500 text-center mt-4">
-              © 2025 Hall of Prints
+              © 2025 Hall of Print
             </p>
           </div>
         </div>

@@ -6,7 +6,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
       <div className="text-center max-w-4xl w-full">
         <h1 className="text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
-          Hall of Prints
+          Hall of Print
         </h1>
         <p className="text-2xl text-indigo-600 mb-8 font-light">
           Your partner for configurable, high-quality leaflets, posters, and more.

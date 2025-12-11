@@ -64,7 +64,7 @@ export async function PUT(request: Request) {
             'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
           },
           body: JSON.stringify({
-            from: 'Hall of Prints <onboarding@resend.dev>',
+            from: 'Hall of Print <onboarding@resend.dev>',
             to: ['aresh@inteeka.com'],
             subject: `⚠️ ALERT: Quote Accepted Without Payment - ${currentQuote.project_title}`,
             html: `
@@ -127,7 +127,7 @@ export async function PUT(request: Request) {
             'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
           },
           body: JSON.stringify({
-            from: 'Hall of Prints <onboarding@resend.dev>',
+            from: 'Hall of Print <onboarding@resend.dev>',
             to: [updates.email || currentQuote.email],
             subject: `Quote Accepted - ${currentQuote.project_title}`,
             html: `
@@ -171,7 +171,7 @@ export async function PUT(request: Request) {
                 
                 <p style="color: #6B7280; font-size: 14px;">
                   Best regards,<br>
-                  The Hall of Prints Team
+                  The Hall of Print Team
                 </p>
               </div>
             `

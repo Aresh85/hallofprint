@@ -101,7 +101,7 @@ function SuccessContent() {
         <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
         <h1 className="text-5xl font-extrabold text-gray-900 mb-4">Order Confirmed!</h1>
         <p className="text-xl text-gray-700 mb-8">
-          Thank you for your purchase from Hall of Prints. Your order is being processed!
+          Thank you for your purchase from Hall of Print. Your order is being processed!
         </p>
 
         {/* Conditional rendering based on whether order has files */}

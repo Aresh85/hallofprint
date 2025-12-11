@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Introduction</h2>
             <p className="text-gray-700 leading-relaxed">
-              Welcome to Hall of Prints ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our printing services.
+              Welcome to Hall of Print ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our printing services.
             </p>
           </section>
 
@@ -177,7 +177,7 @@ export default function PrivacyPolicyPage() {
               If you have questions or concerns about this Privacy Policy or our privacy practices, please contact us:
             </p>
             <div className="bg-gray-50 rounded-lg p-6">
-              <p className="text-gray-700"><strong>Hall of Prints</strong></p>
+              <p className="text-gray-700"><strong>Hall of Print</strong></p>
               <p className="text-gray-700">Email: <a href="mailto:support@hallofprint.com" className="text-indigo-600 hover:text-indigo-800">support@hallofprint.com</a></p>
             </div>
           </section>

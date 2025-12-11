@@ -1,7 +1,7 @@
 # 🖨️ Print Shop Order Management Dashboard - Feature Plan
 
 ## 📋 Overview
-Professional order management system for Hall of Prints with complete workflow tracking, Stripe integration, and comprehensive notes system.
+Professional order management system for Hall of Print with complete workflow tracking, Stripe integration, and comprehensive notes system.
 
 ---
 

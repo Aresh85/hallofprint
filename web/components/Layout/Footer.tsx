@@ -13,7 +13,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <Printer className="w-6 h-6 text-indigo-400" />
-              <span className="text-xl font-bold text-white">Hall of Prints</span>
+              <span className="text-xl font-bold text-white">Hall of Print</span>
             </div>
             <p className="text-sm text-gray-400 mb-6 leading-relaxed">
               Professional printing services for businesses and individuals. Quality prints, fast turnaround, competitive prices.
@@ -154,7 +154,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             {/* Copyright */}
             <p className="text-sm text-gray-400">
-              © {currentYear} Hall of Prints. All rights reserved.
+              © {currentYear} Hall of Print. All rights reserved.
             </p>
             
             {/* Legal Links */}

@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         const operatorEmails = operators.map(op => op.email);
         
         await resend.emails.send({
-          from: 'Hall of Prints <noreply@hallofprint.com>',
+          from: 'Hall of Print <noreply@hallofprint.com>',
           to: operatorEmails,
           subject: `🚨 File Update - Order #${order.order_number}`,
           html: `

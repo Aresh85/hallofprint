@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     // Send email to customer with payment link
     try {
       await resend.emails.send({
-        from: 'Hall of Prints <noreply@hallofprint.com>',
+        from: 'Hall of Print <noreply@hallofprint.com>',
         to: order.customer_email,
         subject: `Your Quote is Ready - Order #${order.order_number}`,
         html: `
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
           <p>If you have any questions, please don't hesitate to reach out.</p>
           
           <p>Best regards,<br>
-          Hall of Prints Team</p>
+          Hall of Print Team</p>
           
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
           <p style="font-size: 0.875em; color: #6b7280;">

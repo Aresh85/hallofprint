@@ -251,7 +251,7 @@ export default function MyQuotesPage() {
 
                   {quote.customer_notes && (
                     <div className="bg-blue-50 p-4 rounded-lg mb-4 border-l-4 border-blue-500">
-                      <p className="text-sm font-semibold text-gray-900 mb-1">Notes from Hall of Prints</p>
+                      <p className="text-sm font-semibold text-gray-900 mb-1">Notes from Hall of Print</p>
                       <p className="text-sm text-gray-700 whitespace-pre-line">{quote.customer_notes}</p>
                     </div>
                   )}

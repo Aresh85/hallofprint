@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
     // Send email to print shop operators
     const operatorEmail = await resend.emails.send({
-      from: 'Hall of Prints <onboarding@resend.dev>',
+      from: 'Hall of Print <onboarding@resend.dev>',
       to: ['aresh@inteeka.com'], // Your operator email
       subject: `🔄 Artwork Updated - Order #${orderNumber}`,
       html: `
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
           </div>
           
           <div style="background-color: #e5e7eb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280;">
-            <p style="margin: 0;">Hall of Prints - Print Shop Management System</p>
+            <p style="margin: 0;">Hall of Print - Print Shop Management System</p>
             <p style="margin: 5px 0 0 0;">This is an automated notification</p>
           </div>
         </div>
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     // Optionally send confirmation to customer
     if (customerEmail) {
       await resend.emails.send({
-        from: 'Hall of Prints <onboarding@resend.dev>',
+        from: 'Hall of Print <onboarding@resend.dev>',
         to: [customerEmail],
         subject: `Artwork Updated - Order #${orderNumber}`,
         html: `
@@ -119,12 +119,12 @@ export async function POST(request: NextRequest) {
               </div>
 
               <p style="font-size: 14px; color: #6b7280; margin-top: 30px;">
-                Thank you for choosing Hall of Prints!
+                Thank you for choosing Hall of Print!
               </p>
             </div>
             
             <div style="background-color: #e5e7eb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280;">
-              <p style="margin: 0;">Hall of Prints</p>
+              <p style="margin: 0;">Hall of Print</p>
               <p style="margin: 5px 0 0 0;">Professional Printing Services</p>
             </div>
           </div>

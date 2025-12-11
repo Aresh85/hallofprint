@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     // Send email notification using Resend
     try {
       await resend.emails.send({
-        from: 'Hall of Prints <noreply@hallofprint.com>',
+        from: 'Hall of Print <noreply@hallofprint.com>',
         to: 'aresh@inteeka.com',
         replyTo: data.email,
         subject: `Price Match Request from ${data.name}`,
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
           
           <hr>
           <p><small>Request ID: ${insertedData?.[0]?.id || 'N/A'}</small></p>
-          <p><small>Submitted via Hall of Prints website</small></p>
+          <p><small>Submitted via Hall of Print website</small></p>
         `,
       });
     } catch (emailError) {

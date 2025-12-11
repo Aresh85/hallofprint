@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     // Send email notification using Resend
     const emailResponse = await resend.emails.send({
-      from: 'Hall of Prints <noreply@hallofprint.com>',
+      from: 'Hall of Print <noreply@hallofprint.com>',
       to: 'aresh@inteeka.com',
       replyTo: email,
       subject: `Quote Request for: ${product}`,
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
         <p>${details}</p>
         
         <hr>
-        <p><small>This quote request was submitted via the Hall of Prints website.</small></p>
+        <p><small>This quote request was submitted via the Hall of Print website.</small></p>
       `,
     });
 

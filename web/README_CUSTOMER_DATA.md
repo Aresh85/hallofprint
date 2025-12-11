@@ -2,7 +2,7 @@
 
 ## Where Customer Data is Stored
 
-Currently, the Hall of Prints application handles customer data in the following ways:
+Currently, the Hall of Print application handles customer data in the following ways:
 
 ### 1. File Upload Submissions
 

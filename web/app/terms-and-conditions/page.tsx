@@ -32,7 +32,7 @@ export default function TermsAndConditionsPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Agreement to Terms</h2>
             <p className="text-gray-700 leading-relaxed">
-              By accessing and using Hall of Prints' website and services, you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree with any part of these Terms, you must not use our services. These Terms constitute a legally binding agreement between you and Hall of Prints.
+              By accessing and using Hall of Print' website and services, you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree with any part of these Terms, you must not use our services. These Terms constitute a legally binding agreement between you and Hall of Print.
             </p>
           </section>
 
@@ -55,7 +55,7 @@ export default function TermsAndConditionsPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">3. Ordering and Payment</h2>
             <div className="space-y-3 text-gray-700">
               <p className="leading-relaxed">
-                <strong>Orders:</strong> All orders are subject to acceptance by Hall of Prints. We reserve the right to refuse or cancel any order for any reason, including but not limited to product availability, errors in pricing or product information, or suspected fraudulent activity.
+                <strong>Orders:</strong> All orders are subject to acceptance by Hall of Print. We reserve the right to refuse or cancel any order for any reason, including but not limited to product availability, errors in pricing or product information, or suspected fraudulent activity.
               </p>
               <p className="leading-relaxed">
                 <strong>Pricing:</strong> All prices are displayed in British Pounds (£) and include VAT where applicable. Prices are subject to change without notice. The price charged will be the price displayed at the time of order placement.
@@ -79,7 +79,7 @@ export default function TermsAndConditionsPage() {
                 <strong>Proof Approval:</strong> For certain orders, we may provide a digital proof for your approval before printing. You are responsible for carefully reviewing proofs and notifying us of any required changes. Once approved, we cannot make changes or accept responsibility for errors.
               </p>
               <p className="leading-relaxed">
-                <strong>Copyright and Ownership:</strong> You represent and warrant that you own or have the necessary rights to all artwork submitted for printing. You agree to indemnify Hall of Prints against any claims arising from copyright infringement or unauthorized use of intellectual property.
+                <strong>Copyright and Ownership:</strong> You represent and warrant that you own or have the necessary rights to all artwork submitted for printing. You agree to indemnify Hall of Print against any claims arising from copyright infringement or unauthorized use of intellectual property.
               </p>
               <p className="leading-relaxed">
                 <strong>Content Restrictions:</strong> We reserve the right to refuse printing of any content that we deem inappropriate, offensive, defamatory, or that violates any laws or regulations.
@@ -133,7 +133,7 @@ export default function TermsAndConditionsPage() {
               To the maximum extent permitted by law:
             </p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li>Hall of Prints shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of our services</li>
+              <li>Hall of Print shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of our services</li>
               <li>Our total liability for any claim arising from your use of our services shall not exceed the amount you paid for the specific product or service giving rise to the claim</li>
               <li>We are not responsible for delays or failures in performance resulting from causes beyond our reasonable control</li>
               <li>We make no warranties about the accuracy, reliability, or availability of our website or services</li>
@@ -143,7 +143,7 @@ export default function TermsAndConditionsPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Intellectual Property</h2>
             <p className="text-gray-700 leading-relaxed">
-              All content on our website, including but not limited to text, graphics, logos, images, and software, is the property of Hall of Prints or its licensors and is protected by copyright and other intellectual property laws. You may not reproduce, distribute, modify, or create derivative works from any content without our express written permission.
+              All content on our website, including but not limited to text, graphics, logos, images, and software, is the property of Hall of Print or its licensors and is protected by copyright and other intellectual property laws. You may not reproduce, distribute, modify, or create derivative works from any content without our express written permission.
             </p>
           </section>
 
@@ -157,7 +157,7 @@ export default function TermsAndConditionsPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Indemnification</h2>
             <p className="text-gray-700 leading-relaxed">
-              You agree to indemnify, defend, and hold harmless Hall of Prints and its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from: (a) your use of our services, (b) your violation of these Terms, (c) your violation of any rights of another party, or (d) any content you submit for printing.
+              You agree to indemnify, defend, and hold harmless Hall of Print and its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from: (a) your use of our services, (b) your violation of these Terms, (c) your violation of any rights of another party, or (d) any content you submit for printing.
             </p>
           </section>
 
@@ -193,7 +193,7 @@ export default function TermsAndConditionsPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">15. Entire Agreement</h2>
             <p className="text-gray-700 leading-relaxed">
-              These Terms, together with our Privacy Policy and Cookie Policy, constitute the entire agreement between you and Hall of Prints regarding your use of our services and supersede all prior agreements and understandings.
+              These Terms, together with our Privacy Policy and Cookie Policy, constitute the entire agreement between you and Hall of Print regarding your use of our services and supersede all prior agreements and understandings.
             </p>
           </section>
 
@@ -203,7 +203,7 @@ export default function TermsAndConditionsPage() {
               If you have any questions about these Terms and Conditions, please contact us:
             </p>
             <div className="bg-gray-50 rounded-lg p-6">
-              <p className="text-gray-700"><strong>Hall of Prints</strong></p>
+              <p className="text-gray-700"><strong>Hall of Print</strong></p>
               <p className="text-gray-700">Email: <a href="mailto:support@hallofprint.com" className="text-indigo-600 hover:text-indigo-800">support@hallofprint.com</a></p>
             </div>
           </section>

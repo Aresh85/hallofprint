@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     // Send email notification using Resend
     try {
       await resend.emails.send({
-        from: 'Hall of Prints <noreply@hallofprint.com>',
+        from: 'Hall of Print <noreply@hallofprint.com>',
         to: 'aresh@inteeka.com',
         replyTo: email,
         subject: `New Quote Request: ${project_title}`,
@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
           <hr>
           <p><strong>Order Number:</strong> ${quoteData.order_number}</p>
           <p><strong>Order ID:</strong> ${quoteData.id}</p>
-          <p><small>Quote submitted via Hall of Prints website</small></p>
+          <p><small>Quote submitted via Hall of Print website</small></p>
           <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://hallofprint.vercel.app'}/admin/orders-enhanced">View in Operations Dashboard</a></p>
         `,
       });
