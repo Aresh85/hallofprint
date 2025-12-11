@@ -41,8 +41,13 @@ export async function POST(request: NextRequest) {
     const sundries = order.order_sundries || [];
     const subtotal = sundries.reduce((sum: number, item: any) => sum + item.total_price, 0);
 
-    // Calculate tax
-    const tax = tax_included ? (subtotal * (tax_rate / 100)) : 0;
+    // Calculate tax based on individual sundry tax rates
+    const tax = tax_included 
+      ? sundries.reduce((sum: number, item: any) => {
+          const itemTaxRate = item.tax_rate || tax_rate; // Use sundry's tax_rate or fall back to global tax_rate
+          return sum + (item.total_price * (itemTaxRate / 100));
+        }, 0)
+      : 0;
     const total = subtotal + tax;
 
     // Update order with pricing

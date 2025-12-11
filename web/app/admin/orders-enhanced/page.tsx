@@ -291,6 +291,7 @@ export default function EnhancedOrdersDashboard() {
           quantity: sundryQuantity,
           unit_price: unitPrice,
           total_price: totalPrice,
+          tax_rate: sundryTaxRate,
           added_by: user?.id
         });
 
@@ -1347,8 +1348,13 @@ export default function EnhancedOrdersDashboard() {
                         const calculatedSubtotal = isUnpricedQuote 
                           ? sundries.reduce((sum: number, item: any) => sum + item.total_price, 0)
                           : order.subtotal;
+                        
+                        // Calculate tax based on individual sundry tax rates
                         const calculatedTax = isUnpricedQuote
-                          ? calculatedSubtotal * 0.20  // Preview 20% VAT
+                          ? sundries.reduce((sum: number, item: any) => {
+                              const taxRate = item.tax_rate || 20; // Default to 20% if not set
+                              return sum + (item.total_price * (taxRate / 100));
+                            }, 0)
                           : order.tax;
                         const calculatedTotal = calculatedSubtotal + calculatedTax;
                         
