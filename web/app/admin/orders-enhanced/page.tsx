@@ -1574,12 +1574,10 @@ export default function EnhancedOrdersDashboard() {
                     <p className="text-xs text-gray-500">Email Address</p>
                     <p className="text-sm text-gray-900">{customerModal.customer_email}</p>
                   </div>
-                  {customerModal.customer_phone && (
-                    <div>
-                      <p className="text-xs text-gray-500">Phone Number</p>
-                      <p className="text-sm text-gray-900">{customerModal.customer_phone}</p>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-xs text-gray-500">Phone Number</p>
+                    <p className="text-sm text-gray-900">{customerModal.customer_phone || 'Not provided'}</p>
+                  </div>
                 </div>
               </div>
 
