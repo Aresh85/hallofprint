@@ -1366,8 +1366,8 @@ export default function EnhancedOrdersDashboard() {
                         .single();
                       if (data) {
                         setSundryDescription(data.description);
-                        setSundryPrice((data.default_price || 0).toString());
-                        setSundryQuantity(1);
+                        setSundryPrice((data.default_unit_price || 0).toString());
+                        setSundryQuantity(data.default_quantity || 1);
                       }
                     }
                   }}
@@ -1386,7 +1386,7 @@ export default function EnhancedOrdersDashboard() {
                   <option value="">-- Select a template or enter custom --</option>
                   {sundryTemplates.map((template) => (
                     <option key={template.id} value={template.id}>
-                      {template.description} - £{(template.default_price || 0).toFixed(2)}
+                      {template.description} - £{(template.default_unit_price || 0).toFixed(2)}
                     </option>
                   ))}
                 </select>
