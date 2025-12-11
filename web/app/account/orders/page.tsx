@@ -24,6 +24,18 @@ type Order = {
     unit_price: number;
     total_price: number;
   }>;
+  order_files?: Array<{
+    id: string;
+    file_url: string;
+    file_name: string;
+    file_type: string;
+    file_size: number;
+    uploaded_by: string;
+    uploaded_at: string;
+    uploader?: {
+      full_name: string;
+    };
+  }>;
 };
 
 export default function OrdersPage() {
@@ -77,7 +89,17 @@ export default function OrdersPage() {
         .select(`
           *,
           order_items (*),
-          order_sundries (*)
+          order_sundries (*),
+          order_files (
+            id,
+            file_url,
+            file_name,
+            file_type,
+            file_size,
+            uploaded_by,
+            uploaded_at,
+            uploader:uploaded_by (full_name)
+          )
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false});
@@ -138,6 +160,14 @@ export default function OrdersPage() {
       month: 'long',
       year: 'numeric',
     });
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   if (loading) {
@@ -382,22 +412,66 @@ export default function OrdersPage() {
                       <div className="mb-6 border-b pb-4">
                         <h4 className="font-bold text-gray-900 mb-3">📎 Uploaded Files</h4>
                         <div className="space-y-2 mb-4">
-                          {(order as any).file_urls.map((url: string, idx: number) => (
-                            <div key={idx} className="flex items-center justify-between bg-white p-3 rounded border">
-                              <div className="flex items-center">
-                                <FileText className="w-4 h-4 text-indigo-600 mr-2" />
-                                <span className="text-sm text-gray-700">File {idx + 1}</span>
-                              </div>
+                          {/* Show metadata if available */}
+                          {order.order_files && order.order_files.length > 0 ? (
+                            order.order_files.map((file) => (
                               <a
-                                href={url}
+                                key={file.id}
+                                href={file.file_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold"
+                                className="block bg-white p-3 rounded border hover:border-indigo-400 hover:shadow transition-all"
                               >
-                                View File →
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-start space-x-3 flex-1">
+                                    <FileText className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 truncate">
+                                        {file.file_name}
+                                      </p>
+                                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-gray-600">
+                                        <span>Type: {file.file_type.split('/').pop()}</span>
+                                        <span>Size: {formatFileSize(file.file_size)}</span>
+                                        <span>
+                                          Uploaded: {new Date(file.uploaded_at).toLocaleDateString('en-GB', {
+                                            day: 'numeric',
+                                            month: 'short',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                          })}
+                                        </span>
+                                        {file.uploader?.full_name && (
+                                          <span>By: {file.uploader.full_name}</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <span className="text-indigo-600 text-sm font-semibold ml-2 flex-shrink-0">→</span>
+                                </div>
                               </a>
-                            </div>
-                          ))}
+                            ))
+                          ) : (
+                            /* Fallback to legacy file_urls display */
+                            <>
+                              {(order as any).file_urls.map((url: string, idx: number) => (
+                                <div key={idx} className="flex items-center justify-between bg-white p-3 rounded border">
+                                  <div className="flex items-center">
+                                    <FileText className="w-4 h-4 text-indigo-600 mr-2" />
+                                    <span className="text-sm text-gray-700">File {idx + 1} (legacy)</span>
+                                  </div>
+                                  <a
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold"
+                                  >
+                                    View File →
+                                  </a>
+                                </div>
+                              ))}
+                            </>
+                          )}
                         </div>
                         
                         {/* File Update Warning & Upload */}
