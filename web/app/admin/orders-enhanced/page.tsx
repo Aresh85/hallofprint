@@ -1366,7 +1366,7 @@ export default function EnhancedOrdersDashboard() {
                         .single();
                       if (data) {
                         setSundryDescription(data.description);
-                        setSundryPrice(data.default_price.toString());
+                        setSundryPrice((data.default_price || 0).toString());
                         setSundryQuantity(1);
                       }
                     }
