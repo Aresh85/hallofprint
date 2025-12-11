@@ -29,6 +29,7 @@ type Order = {
   shipping_postcode: string;
   shipping_country: string;
   tracking_number?: string;
+  file_urls?: string[];
   // New fields
   operator_notes?: string;
   customer_notes?: string;
@@ -966,6 +967,19 @@ export default function EnhancedOrdersDashboard() {
                     {order.customer_phone && (
                       <p className="text-sm text-gray-600">{order.customer_phone}</p>
                     )}
+                    
+                    {/* File Status */}
+                    <div className="mt-2">
+                      {order.file_urls && order.file_urls.length > 0 ? (
+                        <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">
+                          ✓ {order.file_urls.length} file(s)
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">
+                          ⏳ Pending upload
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1 flex items-center">

@@ -288,6 +288,29 @@ export default function OrdersPage() {
                     </div>
                   </div>
 
+                  {/* File Status */}
+                  <div className="mb-4">
+                    {(order as any).file_urls && (order as any).file_urls.length > 0 ? (
+                      <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="flex items-center text-sm">
+                          <FileText className="w-4 h-4 text-green-600 mr-2" />
+                          <span className="text-green-800 font-semibold">
+                            {(order as any).file_urls.length} file(s) uploaded
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div className="flex items-center text-sm">
+                          <Upload className="w-4 h-4 text-yellow-600 mr-2" />
+                          <span className="text-yellow-800 font-semibold">
+                            Pending file upload
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {order.tracking_number && (
                     <div className="mb-4 p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center text-sm">
