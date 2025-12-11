@@ -1386,7 +1386,7 @@ export default function EnhancedOrdersDashboard() {
                   <option value="">-- Select a template or enter custom --</option>
                   {sundryTemplates.map((template) => (
                     <option key={template.id} value={template.id}>
-                      {template.description} - £{template.default_price.toFixed(2)}
+                      {template.description} - £{(template.default_price || 0).toFixed(2)}
                     </option>
                   ))}
                 </select>
