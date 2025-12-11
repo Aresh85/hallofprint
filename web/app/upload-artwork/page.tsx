@@ -61,7 +61,7 @@ export default function UploadArtworkPage() {
         setCustomerEmail(user.email || profile.email || '');
       }
 
-      // Load user's orders with job titles
+      // Load user's orders with job titles (exclude dispatched)
       const { data: orders } = await supabase
         .from('orders')
         .select(`
@@ -70,11 +70,13 @@ export default function UploadArtworkPage() {
           created_at,
           total,
           status,
+          production_status,
           order_items (
             product_name
           )
         `)
         .eq('user_id', user.id)
+        .neq('production_status', 'dispatched')
         .order('created_at', { ascending: false });
 
       if (orders) {
@@ -307,9 +309,14 @@ export default function UploadArtworkPage() {
               const statusBadge = order.status === 'pending' ? '⏳' : 
                                   order.status === 'processing' ? '🔄' : 
                                   order.status === 'dispatched' ? '✅' : '📦';
+              const orderDate = new Date(order.created_at).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              });
               return (
                 <option key={order.id} value={order.id}>
-                  {statusBadge} Order #{order.order_number} - {jobTitle} - £{order.total.toFixed(2)}
+                  {statusBadge} Order #{order.order_number} - {jobTitle} - {orderDate} - £{order.total.toFixed(2)}
                 </option>
               );
             })}

@@ -88,6 +88,9 @@ export default function EnhancedOrdersDashboard() {
   const [sundryQuantity, setSundryQuantity] = useState(1);
   const [sundryPrice, setSundryPrice] = useState('');
   const [sundryTaxRate, setSundryTaxRate] = useState(20);
+  const [sundryTemplates, setSundryTemplates] = useState<any[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   
   // New state for advanced features
   const [operators, setOperators] = useState<Array<{id: string, full_name: string}>>([]);
