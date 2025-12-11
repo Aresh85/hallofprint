@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { UploadCloud, FileText, Loader2, CheckCircle, XCircle, Printer, LogIn } from 'lucide-react';
+import { UploadCloud, FileText, Loader2, CheckCircle, XCircle, Printer, LogIn, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -20,6 +20,17 @@ type Order = {
   }>;
 };
 
+type Address = {
+  id: string;
+  address_line1: string;
+  address_line2?: string;
+  city: string;
+  county?: string;
+  postcode: string;
+  country: string;
+  is_default: boolean;
+};
+
 export default function UploadArtworkPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
@@ -32,6 +43,8 @@ export default function UploadArtworkPage() {
   const [notes, setNotes] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  const [userAddresses, setUserAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
 
   useEffect(() => {
     checkAuthAndLoadOrders();
@@ -81,6 +94,22 @@ export default function UploadArtworkPage() {
 
       if (orders) {
         setUserOrders(orders as Order[]);
+      }
+
+      // Load user's addresses
+      const { data: addresses } = await supabase
+        .from('user_addresses')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('is_default', { ascending: false });
+
+      if (addresses) {
+        setUserAddresses(addresses as Address[]);
+        // Auto-select default address if exists
+        const defaultAddress = addresses.find((addr: Address) => addr.is_default);
+        if (defaultAddress) {
+          setSelectedAddressId(defaultAddress.id);
+        }
       }
 
       setLoading(false);
@@ -361,6 +390,71 @@ export default function UploadArtworkPage() {
             <span className="text-sm text-gray-500">
               {(file.size / 1024 / 1024).toFixed(2)} MB
             </span>
+          </div>
+        )}
+
+        {/* Contact Information - Pre-filled from Profile */}
+        <div className="mb-6 bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Your Contact Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Name
+              </label>
+              <input
+                type="text"
+                value={customerName}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={customerEmail}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            This information is from your profile and cannot be changed here.
+          </p>
+        </div>
+
+        {/* Delivery Address Selection */}
+        {userAddresses.length > 0 && (
+          <div className="mb-6">
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <MapPin className="w-4 h-4 mr-2" />
+              Delivery Address (Optional)
+            </label>
+            <select
+              id="address"
+              value={selectedAddressId}
+              onChange={(e) => setSelectedAddressId(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              disabled={uploadStatus === 'success'}
+            >
+              <option value="">Select a delivery address...</option>
+              {userAddresses.map((address) => (
+                <option key={address.id} value={address.id}>
+                  {address.is_default && '⭐ '}
+                  {address.address_line1}
+                  {address.address_line2 && `, ${address.address_line2}`}
+                  , {address.city}, {address.postcode}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-2">
+              Select from your saved addresses or{' '}
+              <Link href="/account/addresses" className="text-indigo-600 hover:text-indigo-800 underline">
+                manage addresses
+              </Link>
+            </p>
           </div>
         )}
 
