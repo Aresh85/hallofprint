@@ -337,9 +337,11 @@ export default function UploadArtworkPage() {
             <option value="">Choose an order...</option>
             {userOrders.map((order) => {
               const jobTitle = order.order_items?.[0]?.product_name || 'Print Job';
-              const statusBadge = order.status === 'pending' ? '⏳' : 
-                                  order.status === 'processing' ? '🔄' : 
-                                  order.status === 'dispatched' ? '✅' : '📦';
+              const statusBadge = order.status === 'pending' ? '⏳ Pending' : 
+                                  order.status === 'processing' ? '🔄 Processing' : 
+                                  order.status === 'dispatched' ? '✅ Dispatched' : 
+                                  order.status === 'completed' ? '✅ Completed' : 
+                                  '📦 ' + order.status;
               const orderDate = new Date(order.created_at).toLocaleDateString('en-GB', {
                 day: '2-digit',
                 month: 'short',
@@ -347,7 +349,7 @@ export default function UploadArtworkPage() {
               });
               return (
                 <option key={order.id} value={order.id}>
-                  {statusBadge} Order #{order.order_number} - {jobTitle} - {orderDate} - £{order.total.toFixed(2)}
+                  Order #{order.order_number} - {jobTitle} - {statusBadge} - {orderDate} - £{order.total.toFixed(2)}
                 </option>
               );
             })}
