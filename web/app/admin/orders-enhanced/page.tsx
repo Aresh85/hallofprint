@@ -1576,7 +1576,9 @@ export default function EnhancedOrdersDashboard() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Phone Number</p>
-                    <p className="text-sm text-gray-900">{customerModal.customer_phone || 'Not provided'}</p>
+                    <p className="text-sm text-gray-900">
+                      {customerModal.customer_phone || (customerModal as any).mobile || (customerModal as any).phone || (customerModal as any).customer_mobile || 'Not provided'}
+                    </p>
                   </div>
                 </div>
               </div>
