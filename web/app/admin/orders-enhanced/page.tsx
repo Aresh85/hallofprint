@@ -96,6 +96,7 @@ export default function EnhancedOrdersDashboard() {
   const [operators, setOperators] = useState<Array<{id: string, full_name: string}>>([]);
   const [expandedActivity, setExpandedActivity] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [customerModal, setCustomerModal] = useState<Order | null>(null);
   
   // Quote pricing state
   const [quotePricingModal, setQuotePricingModal] = useState<string | null>(null);
@@ -988,7 +989,15 @@ export default function EnhancedOrdersDashboard() {
                 {/* Customer Info & Address */}
                 <div className="grid md:grid-cols-2 gap-4 pt-4 border-t mb-4">
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Customer Info</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs text-gray-500">Customer Info</p>
+                      <button
+                        onClick={() => setCustomerModal(order)}
+                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
+                      >
+                        View Details →
+                      </button>
+                    </div>
                     <p className="text-sm text-gray-900">{order.customer_email}</p>
                     {order.customer_phone && (
                       <p className="text-sm text-gray-600">{order.customer_phone}</p>
@@ -1471,6 +1480,115 @@ export default function EnhancedOrdersDashboard() {
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Customer Details Modal */}
+      {customerModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Customer Details</h3>
+              <button onClick={() => setCustomerModal(null)} className="text-gray-500 hover:text-gray-700">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Order Reference */}
+              <div className="bg-indigo-50 p-4 rounded-lg border-2 border-indigo-200">
+                <p className="text-xs font-semibold text-indigo-800 mb-2">Order Reference</p>
+                <p className="text-lg font-bold text-gray-900">#{customerModal.order_number}</p>
+              </div>
+
+              {/* Customer Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Contact Information
+                </h4>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-xs text-gray-500">Full Name</p>
+                    <p className="text-sm font-semibold text-gray-900">{customerModal.customer_name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Email Address</p>
+                    <p className="text-sm text-gray-900">{customerModal.customer_email}</p>
+                  </div>
+                  {customerModal.customer_phone && (
+                    <div>
+                      <p className="text-xs text-gray-500">Phone Number</p>
+                      <p className="text-sm text-gray-900">{customerModal.customer_phone}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Delivery Address */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Delivery Address
+                </h4>
+                <div className="text-sm text-gray-900 space-y-1">
+                  <p>{customerModal.shipping_address_line1}</p>
+                  {customerModal.shipping_address_line2 && <p>{customerModal.shipping_address_line2}</p>}
+                  <p>{customerModal.shipping_city}</p>
+                  <p className="font-semibold">{customerModal.shipping_postcode}</p>
+                  <p>{customerModal.shipping_country}</p>
+                </div>
+              </div>
+
+              {/* Order Summary */}
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
+                  <Package className="w-4 h-4 mr-2" />
+                  Order Summary
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Order Date:</span>
+                    <span className="font-semibold">{formatDate(customerModal.created_at)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Status:</span>
+                    <span className="font-semibold capitalize">{customerModal.status.replace(/_/g, ' ')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Payment Status:</span>
+                    <span className={`font-semibold ${customerModal.payment_status === 'paid' ? 'text-green-600' : 'text-orange-600'}`}>
+                      {customerModal.payment_status === 'paid' ? '✅ Paid' : '⏳ Pending'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t pt-2 mt-2">
+                    <span className="text-gray-900 font-bold">Total:</span>
+                    <span className="text-lg font-bold text-gray-900">£{customerModal.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Customer Notes */}
+              {customerModal.customer_notes && (
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-bold text-gray-900 mb-2 flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Customer Notes
+                  </h4>
+                  <p className="text-sm text-gray-700">{customerModal.customer_notes}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <button
+                onClick={() => setCustomerModal(null)}
+                className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-semibold"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
