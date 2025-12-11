@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Mail, MessageCircle, FileText, Send, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, MessageCircle, FileText, Send, Loader2, CheckCircle, XCircle, MapPin } from 'lucide-react';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 interface QuoteRequestFormProps {
     productName: string;
@@ -12,7 +14,21 @@ interface QuoteRequestFormProps {
     }>;
 }
 
+type Address = {
+    id: string;
+    address_line1: string;
+    address_line2?: string;
+    city: string;
+    county?: string;
+    postcode: string;
+    country: string;
+    is_default: boolean;
+};
+
 export default function QuoteRequestForm({ productName, selections }: QuoteRequestFormProps) {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userAddresses, setUserAddresses] = useState<Address[]>([]);
+    const [selectedAddressId, setSelectedAddressId] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -25,6 +41,57 @@ export default function QuoteRequestForm({ productName, selections }: QuoteReque
     const [file, setFile] = useState<File | null>(null);
     const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
+
+    useEffect(() => {
+        checkAuthAndLoadData();
+    }, []);
+    
+    const checkAuthAndLoadData = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (!user) {
+                setIsLoggedIn(false);
+                return;
+            }
+
+            setIsLoggedIn(true);
+            
+            // Get user profile
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('full_name, email, mobile')
+                .eq('id', user.id)
+                .single();
+
+            if (profile) {
+                setFormData(prev => ({
+                    ...prev,
+                    name: profile.full_name || '',
+                    email: user.email || profile.email || '',
+                    phone: profile.mobile || ''
+                }));
+            }
+
+            // Load user's addresses
+            const { data: addresses } = await supabase
+                .from('user_addresses')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('is_default', { ascending: false });
+
+            if (addresses) {
+                setUserAddresses(addresses as Address[]);
+                // Auto-select default address if exists
+                const defaultAddress = addresses.find((addr: Address) => addr.is_default);
+                if (defaultAddress) {
+                    setSelectedAddressId(defaultAddress.id);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -97,34 +164,116 @@ export default function QuoteRequestForm({ productName, selections }: QuoteReque
             </div>
             
             {/* Contact Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input 
-                    type="text" 
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Your Full Name (Required)"
-                    required
-                    className="p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                />
-                <input 
-                    type="email" 
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Your Email (Required)"
-                    required
-                    className="p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                />
+            <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Contact Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Your Name <span className="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="Your Full Name"
+                            required
+                            disabled={isLoggedIn}
+                            className={`p-3 w-full border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                                isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''
+                            }`}
+                        />
+                        {isLoggedIn && (
+                            <p className="text-xs text-green-600 mt-1">✓ Auto-filled from your account</p>
+                        )}
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Company Name
+                        </label>
+                        <input 
+                            type="text" 
+                            name="company"
+                            placeholder="Your Company Ltd (optional)"
+                            className="p-3 w-full border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        />
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Email Address <span className="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="email" 
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="your@email.com"
+                            required
+                            disabled={isLoggedIn}
+                            className={`p-3 w-full border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                                isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''
+                            }`}
+                        />
+                        {isLoggedIn && (
+                            <p className="text-xs text-green-600 mt-1">✓ Auto-filled from your account</p>
+                        )}
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Phone Number
+                        </label>
+                        <input 
+                            type="tel" 
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            placeholder="07700 900000"
+                            disabled={isLoggedIn}
+                            className={`p-3 w-full border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                                isLoggedIn ? 'bg-gray-100 cursor-not-allowed' : ''
+                            }`}
+                        />
+                        {isLoggedIn && formData.phone && (
+                            <p className="text-xs text-green-600 mt-1">✓ Auto-filled from your account</p>
+                        )}
+                    </div>
+                </div>
             </div>
-            <input 
-                type="tel" 
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="Phone Number (Optional)"
-                className="p-3 w-full border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-            />
+
+            {/* Delivery Address Selection - Only for logged in users with addresses */}
+            {isLoggedIn && userAddresses.length > 0 && (
+                <div>
+                    <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        Delivery Address (Optional)
+                    </label>
+                    <select
+                        id="address"
+                        value={selectedAddressId}
+                        onChange={(e) => setSelectedAddressId(e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                        <option value="">Select a delivery address...</option>
+                        {userAddresses.map((address) => (
+                            <option key={address.id} value={address.id}>
+                                {address.is_default && '⭐ '}
+                                {address.address_line1}
+                                {address.address_line2 && `, ${address.address_line2}`}
+                                , {address.city}, {address.postcode}
+                            </option>
+                        ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-2">
+                        Select from your saved addresses or{' '}
+                        <Link href="/account/addresses" className="text-indigo-600 hover:text-indigo-800 underline">
+                            manage addresses
+                        </Link>
+                    </p>
+                </div>
+            )}
 
             {/* Additional Details */}
             <textarea
