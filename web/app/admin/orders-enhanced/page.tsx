@@ -259,6 +259,7 @@ export default function EnhancedOrdersDashboard() {
 
       const { data: { user } } = await supabase.auth.getUser();
 
+      // Add sundry to order
       const { error } = await supabase
         .from('order_sundries')
         .insert({
@@ -272,13 +273,36 @@ export default function EnhancedOrdersDashboard() {
 
       if (error) throw error;
 
+      // Save as template if checkbox was checked
+      if (saveAsTemplate) {
+        const { error: templateError } = await supabase
+          .from('sundries_templates')
+          .insert({
+            description: sundryDescription,
+            default_price: unitPrice,
+            created_by: user?.id,
+            is_active: true
+          });
+
+        if (templateError) {
+          console.error('Error saving template:', templateError);
+          alert('Sundry added to order, but failed to save as template');
+        } else {
+          alert('Sundry added successfully and saved as a template!');
+        }
+      } else {
+        alert('Sundry added successfully!');
+      }
+
       setSundryModal(null);
       setSundryDescription('');
       setSundryQuantity(1);
       setSundryPrice('');
       setSundryTaxRate(20);
+      setSelectedTemplate('');
+      setSaveAsTemplate(false);
+      setSundryTemplates([]); // Reset to reload next time
       loadOrders();
-      alert('Sundry added successfully!');
     } catch (error) {
       console.error('Error adding sundry:', error);
       alert('Failed to add sundry');
@@ -1232,15 +1256,64 @@ export default function EnhancedOrdersDashboard() {
       {/* Sundry Modal */}
       {sundryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">Add Sundry/Additional Charge</h3>
-              <button onClick={() => setSundryModal(null)} className="text-gray-500 hover:text-gray-700">
+              <button onClick={async () => {
+                setSundryModal(null);
+                setSundryDescription('');
+                setSundryQuantity(1);
+                setSundryPrice('');
+                setSelectedTemplate('');
+                setSaveAsTemplate(false);
+              }} className="text-gray-500 hover:text-gray-700">
                 <X className="w-6 h-6" />
               </button>
             </div>
             
             <div className="space-y-4">
+              {/* Template Selector */}
+              <div className="bg-indigo-50 p-3 rounded-lg border-2 border-indigo-200">
+                <label className="block text-sm font-semibold mb-2 text-indigo-900">📋 Use Template (Optional)</label>
+                <select
+                  value={selectedTemplate}
+                  onChange={async (e) => {
+                    setSelectedTemplate(e.target.value);
+                    if (e.target.value) {
+                      const { data } = await supabase
+                        .from('sundries_templates')
+                        .select('*')
+                        .eq('id', e.target.value)
+                        .single();
+                      if (data) {
+                        setSundryDescription(data.description);
+                        setSundryPrice(data.default_price.toString());
+                        setSundryQuantity(1);
+                      }
+                    }
+                  }}
+                  className="w-full p-2 border-2 border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  onFocus={async () => {
+                    if (sundryTemplates.length === 0) {
+                      const { data } = await supabase
+                        .from('sundries_templates')
+                        .select('*')
+                        .eq('is_active', true)
+                        .order('description');
+                      if (data) setSundryTemplates(data);
+                    }
+                  }}
+                >
+                  <option value="">-- Select a template or enter custom --</option>
+                  {sundryTemplates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.description} - £{template.default_price.toFixed(2)}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-indigo-700 mt-1">Select a template to auto-fill or enter custom details below</p>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold mb-2">Description</label>
                 <input
@@ -1289,6 +1362,26 @@ export default function EnhancedOrdersDashboard() {
                 </select>
                 <p className="text-xs text-gray-600 mt-1">Default: 20% Standard VAT</p>
               </div>
+
+              {/* Save as Template Checkbox */}
+              {!selectedTemplate && sundryDescription && sundryPrice && (
+                <div className="bg-green-50 p-3 rounded-lg border-2 border-green-200">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saveAsTemplate}
+                      onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    />
+                    <span className="text-sm font-semibold text-green-900">
+                      💾 Save this as a template for future use
+                    </span>
+                  </label>
+                  <p className="text-xs text-green-700 mt-1 ml-6">
+                    Check this to add "{sundryDescription}" to your reusable templates library
+                  </p>
+                </div>
+              )}
 
               <div className="bg-gray-100 p-4 rounded">
                 <div className="space-y-1">
