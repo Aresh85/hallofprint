@@ -1322,12 +1322,17 @@ export default function EnhancedOrdersDashboard() {
 
                       {order.order_sundries && order.order_sundries.length > 0 ? (
                         <div className="space-y-2 mb-4">
-                          {order.order_sundries.map((sundry) => (
+                          {order.order_sundries.map((sundry: any) => (
                             <div key={sundry.id} className="flex justify-between items-center bg-yellow-50 p-3 rounded">
                               <div>
                                 <p className="font-semibold text-gray-900">{sundry.description}</p>
                                 <p className="text-sm text-gray-600">
                                   Qty: {sundry.quantity} × £{sundry.unit_price.toFixed(2)}
+                                  {sundry.tax_rate !== undefined && sundry.tax_rate !== null && (
+                                    <span className="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded">
+                                      {sundry.tax_rate === 0 ? 'No VAT' : `${sundry.tax_rate}% VAT`}
+                                    </span>
+                                  )}
                                 </p>
                               </div>
                               <p className="font-bold text-gray-900">£{sundry.total_price.toFixed(2)}</p>
@@ -1370,7 +1375,20 @@ export default function EnhancedOrdersDashboard() {
                             </div>
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600">
-                                VAT (20%):
+                                {(() => {
+                                  // Determine VAT label based on sundry tax rates
+                                  if (hasSundries) {
+                                    const taxRates = sundries.map((s: any) => s.tax_rate !== undefined && s.tax_rate !== null ? s.tax_rate : 20);
+                                    const uniqueRates = [...new Set(taxRates)];
+                                    if (uniqueRates.length === 1) {
+                                      const rate = uniqueRates[0];
+                                      return rate === 0 ? 'VAT:' : `VAT (${rate}%):`;
+                                    } else {
+                                      return 'VAT (Mixed):';
+                                    }
+                                  }
+                                  return 'VAT (20%):';
+                                })()}
                                 {isUnpricedQuote && <span className="text-xs text-orange-600 ml-1">(Preview)</span>}
                               </span>
                               <span className="font-semibold">£{calculatedTax.toFixed(2)}</span>
