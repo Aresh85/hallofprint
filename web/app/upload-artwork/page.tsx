@@ -428,48 +428,16 @@ export default function UploadArtworkPage() {
               <input
                 type="tel"
                 value={customerMobile}
-                disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+                onChange={(e) => setCustomerMobile(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="07123 456789"
               />
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            This information is from your profile and cannot be changed here.
+            Name and email are from your profile. You can update the mobile number if needed.
           </p>
         </div>
-
-        {/* Delivery Address Selection */}
-        {userAddresses.length > 0 && (
-          <div className="mb-6">
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-              <MapPin className="w-4 h-4 mr-2" />
-              Delivery Address (Optional)
-            </label>
-            <select
-              id="address"
-              value={selectedAddressId}
-              onChange={(e) => setSelectedAddressId(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              disabled={uploadStatus === 'success'}
-            >
-              <option value="">Select a delivery address...</option>
-              {userAddresses.map((address) => (
-                <option key={address.id} value={address.id}>
-                  {address.is_default && '⭐ '}
-                  {address.address_line1}
-                  {address.address_line2 && `, ${address.address_line2}`}
-                  , {address.city}, {address.postcode}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-500 mt-2">
-              Select from your saved addresses or{' '}
-              <Link href="/account/addresses" className="text-indigo-600 hover:text-indigo-800 underline">
-                manage addresses
-              </Link>
-            </p>
-          </div>
-        )}
 
         {/* Notes */}
         <div className="mb-6">
