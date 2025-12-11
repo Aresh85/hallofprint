@@ -212,12 +212,31 @@ export default function UploadArtworkPage() {
         .update({
           artwork_received: true,
           artwork_url: file.name,
-          artwork_submitted_at: new Date().toISOString()
+          artwork_submitted_at: new Date().toISOString(),
+          artwork_updated_at: new Date().toISOString()
         })
         .eq('id', selectedOrderId);
 
-      setUploadStatus('success');
+      // Send email notification to operators
       const selectedOrder = userOrders.find(o => o.id === selectedOrderId);
+      try {
+        await fetch('/api/send-artwork-update-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderNumber: selectedOrder?.order_number,
+            fileName: file.name,
+            customerName: customerName,
+            customerEmail: customerEmail
+          })
+        });
+        console.log('✅ Email notification sent to operators');
+      } catch (emailError) {
+        console.error('Failed to send email notification:', emailError);
+        // Don't fail the upload if email fails
+      }
+
+      setUploadStatus('success');
       setMessage(`Success! Your artwork has been uploaded for Order #${selectedOrder?.order_number}. We'll review it and contact you at ${customerEmail}.`);
       
     } catch (error: any) {

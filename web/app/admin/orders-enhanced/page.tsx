@@ -734,6 +734,36 @@ export default function EnhancedOrdersDashboard() {
                           {isOverdue(order.due_date) && ' (OVERDUE!)'}
                         </span>
                       )}
+
+                      {/* File Status Badges */}
+                      {(() => {
+                        const artworkUpdatedAt = (order as any).artwork_updated_at;
+                        const hasFiles = order.order_files && order.order_files.length > 0;
+                        const hasLegacyFiles = order.file_urls && order.file_urls.length > 0;
+                        
+                        // Show NEW FILE badge if file was uploaded within last 48 hours
+                        if (artworkUpdatedAt) {
+                          const hoursSinceUpdate = (Date.now() - new Date(artworkUpdatedAt).getTime()) / (1000 * 60 * 60);
+                          if (hoursSinceUpdate <= 48) {
+                            return (
+                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border-2 border-green-400 animate-pulse">
+                                🆕 NEW FILE ({Math.round(hoursSinceUpdate)}h ago)
+                              </span>
+                            );
+                          }
+                        }
+                        
+                        // Show PENDING UPLOAD badge if no files uploaded
+                        if (!hasFiles && !hasLegacyFiles) {
+                          return (
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border-2 border-yellow-400">
+                              ⏳ PENDING UPLOAD
+                            </span>
+                          );
+                        }
+                        
+                        return null;
+                      })()}
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-4 text-sm">
