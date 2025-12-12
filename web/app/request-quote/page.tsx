@@ -53,10 +53,48 @@ export default function RequestQuotePage() {
   });
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [descriptionHelper, setDescriptionHelper] = useState({
+    show: false,
+    hasSize: false,
+    hasColor: false,
+    hasPaper: false,
+    hasFinish: false,
+  });
 
   useEffect(() => {
     loadUserData();
   }, []);
+
+  // Analyze job description for completeness
+  useEffect(() => {
+    const description = formData.project_description.toLowerCase();
+    
+    // Only show helper if description has some content (50+ chars shows engagement)
+    if (description.length < 50) {
+      setDescriptionHelper(prev => ({ ...prev, show: false }));
+      return;
+    }
+
+    // Check for size/dimensions
+    const hasSize = /\b(a[0-9]|[0-9]+\s?(mm|cm|inch|"|x|×)|\d+x\d+|size|dimension|width|height)\b/i.test(description);
+    
+    // Check for color
+    const hasColor = /\b(color|colour|cmyk|full.?color|black.?white|mono|pantone|rgb|4.?color|spot.?color)\b/i.test(description);
+    
+    // Check for paper type
+    const hasPaper = /\b(gloss|matt|matte|uncoated|silk|gsm|card|paper|stock|weight|[0-9]+gsm)\b/i.test(description);
+    
+    // Check for finish
+    const hasFinish = /\b(laminat|uv|varnish|finish|coating|gloss|matt|foil|emboss|spot)\b/i.test(description);
+
+    setDescriptionHelper({
+      show: true,
+      hasSize,
+      hasColor,
+      hasPaper,
+      hasFinish,
+    });
+  }, [formData.project_description]);
 
   const loadUserData = async () => {
     try {
@@ -681,6 +719,84 @@ export default function RequestQuotePage() {
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors"
                   placeholder="Tell us what you need printed - size, paper type, colors, finishing, etc."
                 />
+                
+                {/* Smart Job Description Helper */}
+                {descriptionHelper.show && (
+                  <div className="mt-3 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                    <p className="text-sm font-bold text-gray-900 mb-3">📋 Quick Check - Your description includes:</p>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className={`flex items-center space-x-2 ${descriptionHelper.hasSize ? 'text-green-700' : 'text-gray-500'}`}>
+                        {descriptionHelper.hasSize ? (
+                          <>
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="font-semibold">Size/Dimensions ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-4 h-4 flex items-center justify-center text-gray-400">○</span>
+                            <span>Size (e.g., A4, 210x297mm)</span>
+                          </>
+                        )}
+                      </div>
+                      
+                      <div className={`flex items-center space-x-2 ${descriptionHelper.hasColor ? 'text-green-700' : 'text-gray-500'}`}>
+                        {descriptionHelper.hasColor ? (
+                          <>
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="font-semibold">Color ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-4 h-4 flex items-center justify-center text-gray-400">○</span>
+                            <span>Color (e.g., CMYK, B&W)</span>
+                          </>
+                        )}
+                      </div>
+                      
+                      <div className={`flex items-center space-x-2 ${descriptionHelper.hasPaper ? 'text-green-700' : 'text-gray-500'}`}>
+                        {descriptionHelper.hasPaper ? (
+                          <>
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="font-semibold">Paper Type ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-4 h-4 flex items-center justify-center text-gray-400">○</span>
+                            <span>Paper (e.g., 150gsm gloss)</span>
+                          </>
+                        )}
+                      </div>
+                      
+                      <div className={`flex items-center space-x-2 ${descriptionHelper.hasFinish ? 'text-green-700' : 'text-gray-500'}`}>
+                        {descriptionHelper.hasFinish ? (
+                          <>
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="font-semibold">Finish ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-4 h-4 flex items-center justify-center text-gray-400">○</span>
+                            <span>Finish (e.g., laminated, UV)</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {(descriptionHelper.hasSize && descriptionHelper.hasColor && descriptionHelper.hasPaper) ? (
+                      <div className="mt-3 pt-3 border-t border-blue-300">
+                        <p className="text-xs text-green-700 font-semibold">
+                          ✓ Great! You've included the key details we need to provide an accurate quote.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-3 pt-3 border-t border-blue-300">
+                        <p className="text-xs text-gray-600">
+                          <strong>Tip:</strong> Including these details helps us provide a faster, more accurate quote. Don't worry if you're missing something - we can always follow up!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* File Upload */}
