@@ -98,6 +98,7 @@ export default function OrdersPage() {
             file_size,
             uploaded_by,
             uploaded_at,
+            notes,
             uploader:uploaded_by (full_name)
           )
         `)
@@ -460,6 +461,12 @@ export default function OrdersPage() {
                                           <span>By: {file.uploader.full_name}</span>
                                         )}
                                       </div>
+                                      {(file as any).notes && (
+                                        <div className="mt-2 pt-2 border-t border-gray-200">
+                                          <p className="text-xs font-semibold text-amber-700">📝 Your Notes:</p>
+                                          <p className="text-xs text-gray-700 italic">{(file as any).notes}</p>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                   <span className="text-indigo-600 text-sm font-semibold ml-2 flex-shrink-0">→</span>
