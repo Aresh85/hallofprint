@@ -696,20 +696,26 @@ export default function EnhancedOrdersDashboard() {
                         Order #{order.order_number}
                       </h3>
                       
-                      {/* Order Type Badge */}
-                      {(order as any).order_type && (order as any).order_type !== 'standard' && (
-                        <>
-                          {(order as any).order_type === 'quote' && (
-                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300">
-                              💬 QUOTE
-                            </span>
-                          )}
-                          {(order as any).order_type === 'price_match' && (
-                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border-2 border-yellow-400 animate-pulse">
-                              🎯 PRICE MATCH
-                            </span>
-                          )}
-                        </>
+                      {/* Order Type Badge - Show ORDER if paid, otherwise show QUOTE/PRICE_MATCH */}
+                      {order.payment_status === 'paid' ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
+                          📦 ORDER
+                        </span>
+                      ) : (
+                        (order as any).order_type && (order as any).order_type !== 'standard' && (
+                          <>
+                            {(order as any).order_type === 'quote' && (
+                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                                💬 QUOTE
+                              </span>
+                            )}
+                            {(order as any).order_type === 'price_match' && (
+                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border-2 border-yellow-400 animate-pulse">
+                                🎯 PRICE MATCH
+                              </span>
+                            )}
+                          </>
+                        )
                       )}
                       
                       {/* Priority Badge */}
