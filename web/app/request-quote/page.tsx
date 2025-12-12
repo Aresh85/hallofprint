@@ -85,7 +85,7 @@ export default function RequestQuotePage() {
     const hasPaper = /\b(gloss|matt|matte|uncoated|silk|gsm|card|paper|stock|weight|[0-9]+gsm)\b/i.test(description);
     
     // Check for finish
-    const hasFinish = /\b(laminat|uv|varnish|finish|coating|gloss|matt|foil|emboss|spot)\b/i.test(description);
+    const hasFinish = /\b(laminat|varnish|finish|coating|gloss|matt|foil|emboss|spot|binding|wire.?bind|corner|edge|round|cut)\b/i.test(description);
 
     setDescriptionHelper({
       show: true,
@@ -776,7 +776,7 @@ export default function RequestQuotePage() {
                         ) : (
                           <>
                             <span className="w-4 h-4 flex items-center justify-center text-gray-400">○</span>
-                            <span>Finish (e.g., laminated, UV)</span>
+                            <span>Finish (e.g., wire binding, corner edges)</span>
                           </>
                         )}
                       </div>
