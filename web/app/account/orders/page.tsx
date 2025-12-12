@@ -223,72 +223,179 @@ export default function OrdersPage() {
           Back to Account
         </Link>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Order History</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Order History</h1>
+          <div className="text-right">
+            <p className="text-sm text-gray-600">Showing</p>
+            <p className="text-2xl font-bold text-indigo-600">{filteredOrders.length} of {orders.length}</p>
+          </div>
+        </div>
 
-        {/* Filter Dropdown */}
+        {/* Quick Filter Buttons */}
         {orders.length > 0 && (
-          <div className="mb-6 bg-white rounded-lg shadow-md p-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Find Orders:</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none text-base"
-            >
-              <option value="all">📋 All Orders ({orders.length})</option>
-              
-              <optgroup label="⚠️ ACTION REQUIRED">
-                <option value="needs_attention">
-                  🔔 Needs My Attention ({
-                    orders.filter(o => {
+          <div className="mb-6">
+            {/* Primary Action Filters */}
+            <div className="mb-4">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Quick Filters</h3>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => setStatusFilter('all')}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    statusFilter === 'all'
+                      ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-300'
+                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-indigo-400 hover:text-indigo-600'
+                  }`}
+                >
+                  📋 All Orders
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                    statusFilter === 'all' ? 'bg-indigo-500' : 'bg-gray-200'
+                  }`}>
+                    {orders.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setStatusFilter('needs_attention')}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    statusFilter === 'needs_attention'
+                      ? 'bg-red-600 text-white shadow-lg ring-2 ring-red-300 animate-pulse'
+                      : 'bg-white text-gray-700 border-2 border-red-300 hover:border-red-500 hover:text-red-600'
+                  }`}
+                >
+                  🔔 Needs Attention
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                    statusFilter === 'needs_attention' ? 'bg-red-500' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {orders.filter(o => {
                       const needsFiles = (!o.order_files || o.order_files.length === 0) && 
                                         (!(o as any).file_urls || (o as any).file_urls.length === 0);
                       const needsPayment = o.status === 'quote_priced' && o.payment_status !== 'paid';
                       return needsFiles || needsPayment;
-                    }).length
-                  })
-                </option>
-                <option value="ready_to_pay">
-                  💳 Ready to Pay ({orders.filter(o => o.status === 'quote_priced' && o.payment_status !== 'paid').length})
-                </option>
-                <option value="needs_files">
-                  📤 Upload Files ({
-                    orders.filter(o => {
+                    }).length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setStatusFilter('ready_to_pay')}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    statusFilter === 'ready_to_pay'
+                      ? 'bg-green-600 text-white shadow-lg ring-2 ring-green-300'
+                      : 'bg-white text-gray-700 border-2 border-green-300 hover:border-green-500 hover:text-green-600'
+                  }`}
+                >
+                  💳 Ready to Pay
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                    statusFilter === 'ready_to_pay' ? 'bg-green-500' : 'bg-green-100 text-green-700'
+                  }`}>
+                    {orders.filter(o => o.status === 'quote_priced' && o.payment_status !== 'paid').length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setStatusFilter('needs_files')}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    statusFilter === 'needs_files'
+                      ? 'bg-amber-600 text-white shadow-lg ring-2 ring-amber-300'
+                      : 'bg-white text-gray-700 border-2 border-amber-300 hover:border-amber-500 hover:text-amber-600'
+                  }`}
+                >
+                  📤 Upload Files
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                    statusFilter === 'needs_files' ? 'bg-amber-500' : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {orders.filter(o => {
                       const needsFiles = (!o.order_files || o.order_files.length === 0) && 
                                         (!(o as any).file_urls || (o as any).file_urls.length === 0);
                       return needsFiles;
-                    }).length
-                  })
-                </option>
-              </optgroup>
-              
-              <optgroup label="📊 ORDER STATUS">
-                <option value="awaiting_quote">
-                  ⏳ Awaiting Quote ({
-                    orders.filter(o => 
+                    }).length}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Secondary Status Filters */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Order Status</h3>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => setStatusFilter('awaiting_quote')}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    statusFilter === 'awaiting_quote'
+                      ? 'bg-purple-600 text-white shadow-lg ring-2 ring-purple-300'
+                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400 hover:text-purple-600'
+                  }`}
+                >
+                  ⏳ Awaiting Quote
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                    statusFilter === 'awaiting_quote' ? 'bg-purple-500' : 'bg-gray-200'
+                  }`}>
+                    {orders.filter(o => 
                       isQuote(o as any) && 
                       ['quote_pending', 'quote_reviewed'].includes(o.status) && 
                       o.payment_status !== 'paid'
-                    ).length
-                  })
-                </option>
-                <option value="in_progress">
-                  🔧 In Production ({
-                    orders.filter(o => 
+                    ).length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setStatusFilter('in_progress')}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    statusFilter === 'in_progress'
+                      ? 'bg-blue-600 text-white shadow-lg ring-2 ring-blue-300'
+                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-400 hover:text-blue-600'
+                  }`}
+                >
+                  🔧 In Production
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                    statusFilter === 'in_progress' ? 'bg-blue-500' : 'bg-gray-200'
+                  }`}>
+                    {orders.filter(o => 
                       o.payment_status === 'paid' && 
                       ['processing', 'pending'].includes(o.status) &&
                       (o as any).production_status !== 'dispatched'
-                    ).length
-                  })
-                </option>
-                <option value="completed">
-                  ✅ Completed/Dispatched ({orders.filter(o => o.status === 'completed' || (o as any).production_status === 'dispatched').length})
-                </option>
-              </optgroup>
-            </select>
-            {statusFilter === 'needs_attention' && (
-              <p className="text-xs text-amber-600 mt-2 font-semibold">
-                ⚠️ These orders need action from you (payment or file upload)
-              </p>
+                    ).length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setStatusFilter('completed')}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                    statusFilter === 'completed'
+                      ? 'bg-emerald-600 text-white shadow-lg ring-2 ring-emerald-300'
+                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-emerald-400 hover:text-emerald-600'
+                  }`}
+                >
+                  ✅ Completed
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                    statusFilter === 'completed' ? 'bg-emerald-500' : 'bg-gray-200'
+                  }`}>
+                    {orders.filter(o => o.status === 'completed' || (o as any).production_status === 'dispatched').length}
+                  </span>
+                </button>
+
+                {statusFilter !== 'all' && (
+                  <button
+                    onClick={() => setStatusFilter('all')}
+                    className="px-4 py-2 rounded-lg font-semibold text-sm bg-gray-100 text-gray-600 border-2 border-gray-300 hover:bg-gray-200 transition-all"
+                  >
+                    ✕ Clear Filter
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Active Filter Info */}
+            {statusFilter !== 'all' && (
+              <div className="mt-4 p-3 bg-indigo-50 border-l-4 border-indigo-500 rounded">
+                <p className="text-sm text-indigo-900 font-semibold">
+                  {statusFilter === 'needs_attention' && '⚠️ Showing orders that need your action (payment or file upload)'}
+                  {statusFilter === 'ready_to_pay' && '💳 Showing quotes ready for payment'}
+                  {statusFilter === 'needs_files' && '📤 Showing orders waiting for file uploads'}
+                  {statusFilter === 'awaiting_quote' && '⏳ Showing quotes being reviewed by our team'}
+                  {statusFilter === 'in_progress' && '🔧 Showing orders currently in production'}
+                  {statusFilter === 'completed' && '✅ Showing completed and dispatched orders'}
+                </p>
+              </div>
             )}
           </div>
         )}
