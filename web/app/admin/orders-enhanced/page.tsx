@@ -194,6 +194,7 @@ export default function EnhancedOrdersDashboard() {
             file_size,
             uploaded_by,
             uploaded_at,
+            notes,
             uploader:uploaded_by (full_name)
           )
         `)
