@@ -206,6 +206,24 @@ export default function UploadArtworkPage() {
         throw new Error(dbError.message);
       }
 
+      // ALSO save to order_files table for admin dashboard
+      const { error: fileError } = await supabase
+        .from('order_files')
+        .insert({
+          order_id: selectedOrderId,
+          file_url: fileUrl,
+          file_name: file.name,
+          file_type: file.type,
+          file_size: file.size,
+          uploaded_by: user?.id || null,
+          uploaded_at: new Date().toISOString()
+        });
+
+      if (fileError) {
+        console.error('Error saving to order_files:', fileError);
+        // Don't throw error - file is already saved to artwork_submissions
+      }
+
       // Update order artwork status
       await supabase
         .from('orders')
