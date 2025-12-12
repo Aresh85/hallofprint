@@ -336,22 +336,40 @@ export default function OrdersPage() {
 
                   {/* File Status */}
                   <div className="mb-4">
-                    {(order as any).file_urls && (order as any).file_urls.length > 0 ? (
+                    {order.order_files && order.order_files.length > 0 ? (
                       <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="flex items-center text-sm">
-                          <FileText className="w-4 h-4 text-green-600 mr-2" />
-                          <span className="text-green-800 font-semibold">
-                            {(order as any).file_urls.length} file(s) uploaded
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center text-sm">
+                            <FileText className="w-4 h-4 text-green-600 mr-2" />
+                            <span className="text-green-800 font-semibold">
+                              {order.order_files.length} file{order.order_files.length !== 1 ? 's' : ''} uploaded
+                            </span>
+                          </div>
+                          <Link
+                            href={`/upload-artwork?order_id=${order.id}`}
+                            className="text-xs text-green-700 hover:text-green-900 font-semibold flex items-center"
+                          >
+                            <Upload className="w-3 h-3 mr-1" />
+                            Add More
+                          </Link>
                         </div>
                       </div>
                     ) : (
                       <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <div className="flex items-center text-sm">
-                          <Upload className="w-4 h-4 text-yellow-600 mr-2" />
-                          <span className="text-yellow-800 font-semibold">
-                            Pending file upload
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center text-sm">
+                            <Upload className="w-4 h-4 text-yellow-600 mr-2" />
+                            <span className="text-yellow-800 font-semibold">
+                              Pending file upload
+                            </span>
+                          </div>
+                          <Link
+                            href={`/upload-artwork?order_id=${order.id}`}
+                            className="inline-flex items-center px-3 py-1 bg-yellow-600 text-white text-xs font-semibold rounded hover:bg-yellow-700 transition-colors"
+                          >
+                            <Upload className="w-3 h-3 mr-1" />
+                            Upload Now
+                          </Link>
                         </div>
                       </div>
                     )}

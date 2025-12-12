@@ -51,6 +51,15 @@ export default function UploadArtworkPage() {
     checkAuthAndLoadOrders();
   }, []);
 
+  useEffect(() => {
+    // Pre-select order if order_id is in URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderIdParam = urlParams.get('order_id');
+    if (orderIdParam && userOrders.length > 0) {
+      setSelectedOrderId(orderIdParam);
+    }
+  }, [userOrders]);
+
   const checkAuthAndLoadOrders = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
