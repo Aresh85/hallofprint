@@ -59,6 +59,40 @@ export default function OrdersPage() {
     
     if (statusFilter !== 'all') {
       filtered = filtered.filter(order => {
+        // Action required - things customer needs to do
+        if (statusFilter === 'needs_attention') {
+          const needsFiles = (!order.order_files || order.order_files.length === 0) && 
+                             (!(order as any).file_urls || (order as any).file_urls.length === 0);
+          const needsPayment = order.status === 'quote_priced' && order.payment_status !== 'paid';
+          return needsFiles || needsPayment;
+        }
+        // Quotes waiting for pricing
+        if (statusFilter === 'awaiting_quote') {
+          return isQuote(order as any) && 
+                 ['quote_pending', 'quote_reviewed'].includes(order.status) && 
+                 order.payment_status !== 'paid';
+        }
+        // Ready to pay
+        if (statusFilter === 'ready_to_pay') {
+          return order.status === 'quote_priced' && order.payment_status !== 'paid';
+        }
+        // Needs file upload
+        if (statusFilter === 'needs_files') {
+          const needsFiles = (!order.order_files || order.order_files.length === 0) && 
+                             (!(order as any).file_urls || (order as any).file_urls.length === 0);
+          return needsFiles;
+        }
+        // In progress/production
+        if (statusFilter === 'in_progress') {
+          return order.payment_status === 'paid' && 
+                 ['processing', 'pending'].includes(order.status) &&
+                 (order as any).production_status !== 'dispatched';
+        }
+        // Completed/Dispatched
+        if (statusFilter === 'completed') {
+          return order.status === 'completed' || (order as any).production_status === 'dispatched';
+        }
+        // Legacy filters
         if (statusFilter === 'quotes') {
           return isQuote(order as any) && order.payment_status !== 'paid';
         }
@@ -194,18 +228,68 @@ export default function OrdersPage() {
         {/* Filter Dropdown */}
         {orders.length > 0 && (
           <div className="mb-6 bg-white rounded-lg shadow-md p-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Filter Orders:</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Find Orders:</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full md:w-64 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none text-base"
             >
-              <option value="all">All Orders ({orders.length})</option>
-              <option value="quotes">Quotes Only ({orders.filter(o => isQuote(o as any) && o.payment_status !== 'paid').length})</option>
-              <option value="paid">Paid Orders ({orders.filter(o => o.payment_status === 'paid').length})</option>
-              <option value="pending_payment">Pending Payment ({orders.filter(o => o.status === 'quote_priced' && o.payment_status !== 'paid').length})</option>
-              <option value="processing">In Production ({orders.filter(o => o.status === 'processing').length})</option>
+              <option value="all">📋 All Orders ({orders.length})</option>
+              
+              <optgroup label="⚠️ ACTION REQUIRED">
+                <option value="needs_attention">
+                  🔔 Needs My Attention ({
+                    orders.filter(o => {
+                      const needsFiles = (!o.order_files || o.order_files.length === 0) && 
+                                        (!(o as any).file_urls || (o as any).file_urls.length === 0);
+                      const needsPayment = o.status === 'quote_priced' && o.payment_status !== 'paid';
+                      return needsFiles || needsPayment;
+                    }).length
+                  })
+                </option>
+                <option value="ready_to_pay">
+                  💳 Ready to Pay ({orders.filter(o => o.status === 'quote_priced' && o.payment_status !== 'paid').length})
+                </option>
+                <option value="needs_files">
+                  📤 Upload Files ({
+                    orders.filter(o => {
+                      const needsFiles = (!o.order_files || o.order_files.length === 0) && 
+                                        (!(o as any).file_urls || (o as any).file_urls.length === 0);
+                      return needsFiles;
+                    }).length
+                  })
+                </option>
+              </optgroup>
+              
+              <optgroup label="📊 ORDER STATUS">
+                <option value="awaiting_quote">
+                  ⏳ Awaiting Quote ({
+                    orders.filter(o => 
+                      isQuote(o as any) && 
+                      ['quote_pending', 'quote_reviewed'].includes(o.status) && 
+                      o.payment_status !== 'paid'
+                    ).length
+                  })
+                </option>
+                <option value="in_progress">
+                  🔧 In Production ({
+                    orders.filter(o => 
+                      o.payment_status === 'paid' && 
+                      ['processing', 'pending'].includes(o.status) &&
+                      (o as any).production_status !== 'dispatched'
+                    ).length
+                  })
+                </option>
+                <option value="completed">
+                  ✅ Completed/Dispatched ({orders.filter(o => o.status === 'completed' || (o as any).production_status === 'dispatched').length})
+                </option>
+              </optgroup>
             </select>
+            {statusFilter === 'needs_attention' && (
+              <p className="text-xs text-amber-600 mt-2 font-semibold">
+                ⚠️ These orders need action from you (payment or file upload)
+              </p>
+            )}
           </div>
         )}
 
