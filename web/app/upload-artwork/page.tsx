@@ -206,7 +206,7 @@ export default function UploadArtworkPage() {
         throw new Error(dbError.message);
       }
 
-      // ALSO save to order_files table for admin dashboard
+      // ALSO save to order_files table for admin dashboard (including notes)
       const { error: fileError } = await supabase
         .from('order_files')
         .insert({
@@ -216,7 +216,8 @@ export default function UploadArtworkPage() {
           file_type: file.type,
           file_size: file.size,
           uploaded_by: user?.id || null,
-          uploaded_at: new Date().toISOString()
+          uploaded_at: new Date().toISOString(),
+          notes: notes || null
         });
 
       if (fileError) {

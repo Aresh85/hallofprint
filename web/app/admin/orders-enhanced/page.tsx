@@ -1116,6 +1116,12 @@ export default function EnhancedOrdersDashboard() {
                                   <p>Size: {formatFileSize(file.file_size)}</p>
                                   <p>Uploaded: {formatDate(file.uploaded_at)}</p>
                                   <p>By: {file.uploader?.full_name || 'Unknown'}</p>
+                                  {(file as any).notes && (
+                                    <div className="mt-2 pt-2 border-t border-gray-200">
+                                      <p className="font-semibold text-amber-700">📝 Customer Notes:</p>
+                                      <p className="text-gray-700 italic">{(file as any).notes}</p>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             ))}
