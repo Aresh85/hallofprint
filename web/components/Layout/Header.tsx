@@ -148,7 +148,7 @@ export default function Header() {
                           className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-indigo-50 transition-colors"
                         >
                           <Settings className="w-4 h-4" />
-                          <span>Orders</span>
+                          <span>Your Orders</span>
                         </Link>
                         {(userRole === 'admin' || userRole === 'operator') && (
                           <Link
@@ -293,7 +293,7 @@ export default function Header() {
                       className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
                     >
                       <Settings className="w-5 h-5" />
-                      <span>My Orders</span>
+                      <span>Your Orders</span>
                     </Link>
                   </li>
                   <li>

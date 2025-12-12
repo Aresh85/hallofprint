@@ -189,7 +189,7 @@ export default function AccountPage() {
                   <Package className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900">Orders</h3>
+                  <h3 className="font-bold text-gray-900">Your Orders</h3>
                   <p className="text-sm text-gray-600">View order history</p>
                 </div>
               </div>
