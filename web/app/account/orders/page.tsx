@@ -45,6 +45,9 @@ export default function OrdersPage() {
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   useEffect(() => {
     loadOrders();
@@ -52,11 +55,33 @@ export default function OrdersPage() {
 
   useEffect(() => {
     filterOrders();
-  }, [orders, statusFilter]);
+  }, [orders, statusFilter, searchTerm, dateFrom, dateTo]);
 
   const filterOrders = () => {
     let filtered = [...orders];
     
+    // Search by order number
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(order =>
+        order.order_number.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Filter by date range
+    if (dateFrom) {
+      filtered = filtered.filter(order => 
+        new Date(order.created_at) >= new Date(dateFrom)
+      );
+    }
+    if (dateTo) {
+      const endDate = new Date(dateTo);
+      endDate.setHours(23, 59, 59, 999); // Include the entire end date
+      filtered = filtered.filter(order => 
+        new Date(order.created_at) <= endDate
+      );
+    }
+    
+    // Status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(order => {
         // Action required - things customer needs to do
@@ -224,12 +249,81 @@ export default function OrdersPage() {
         </Link>
 
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Order History</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Your Orders</h1>
           <div className="text-right">
             <p className="text-sm text-gray-600">Showing</p>
             <p className="text-2xl font-bold text-indigo-600">{filteredOrders.length} of {orders.length}</p>
           </div>
         </div>
+
+        {/* Search and Date Filters */}
+        {orders.length > 0 && (
+          <div className="mb-6 bg-white rounded-lg shadow-md p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Search & Filter</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Search by Order Number */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Search Order Number
+                </label>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Enter order number..."
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none text-sm"
+                />
+              </div>
+              
+              {/* Date From */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  From Date
+                </label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none text-sm"
+                />
+              </div>
+              
+              {/* Date To */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none text-sm"
+                />
+              </div>
+            </div>
+            
+            {/* Clear Search/Date Filters */}
+            {(searchTerm || dateFrom || dateTo) && (
+              <div className="mt-3 flex items-center justify-between">
+                <p className="text-xs text-gray-600">
+                  {searchTerm && `Searching: "${searchTerm}" `}
+                  {dateFrom && `From: ${new Date(dateFrom).toLocaleDateString('en-GB')} `}
+                  {dateTo && `To: ${new Date(dateTo).toLocaleDateString('en-GB')}`}
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setDateFrom('');
+                    setDateTo('');
+                  }}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
+                >
+                  Clear Search & Dates
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Quick Filter Buttons */}
         {orders.length > 0 && (
