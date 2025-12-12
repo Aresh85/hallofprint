@@ -508,7 +508,7 @@ export default function OrdersPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <div key={order.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
