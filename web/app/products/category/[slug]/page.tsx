@@ -31,10 +31,93 @@ interface ProductListing {
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  // Redirect to boards landing page if this is the boards category
+  // If this is the boards category, fetch and render subcategories instead
   if (slug === 'boards') {
-    const { redirect } = await import('next/navigation');
-    redirect('/products/category/boards');
+    const boardSubcategoriesQuery = `*[_type == "category" && slug.current in ["display-boards", "foam-boards", "xanita-boards", "di-bond-boards"]] | order(sortOrder asc, name asc) {
+      _id,
+      name,
+      "slug": slug.current,
+      description,
+      "productCount": count(*[_type == "product" && status == "active" && category._ref == ^._id])
+    }`;
+    
+    const boardSubcategories = await sanityFetch<Array<{_id: string; name: string; slug: string; description: string; productCount: number}>>(boardSubcategoriesQuery);
+    
+    // Render boards landing page
+    return (
+      <div className="bg-gray-50 min-h-screen">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+          <div className="container mx-auto px-4 py-12 md:py-16">
+            <div className="max-w-3xl">
+              <nav className="mb-6 flex items-center text-sm text-indigo-100">
+                <Link href="/" className="hover:text-white transition-colors">Home</Link>
+                <span className="mx-2">/</span>
+                <Link href="/categories" className="hover:text-white transition-colors">Products</Link>
+                <span className="mx-2">/</span>
+                <span className="text-white font-semibold">Boards</span>
+              </nav>
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
+                Boards ⭐
+              </h1>
+              <p className="text-xl text-indigo-100 mb-6">
+                Professional display boards - choose by material type
+              </p>
+              <div className="flex items-center gap-4 text-sm">
+                <span className="bg-white/20 px-4 py-2 rounded-full">
+                  0 Products
+                </span>
+                <span className="bg-yellow-400 text-indigo-900 font-semibold px-4 py-2 rounded-full">
+                  Featured Category
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 py-10">
+          <Link href="/categories" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-semibold mb-8 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to All Products
+          </Link>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {boardSubcategories.map((subcategory) => (
+              <Link key={subcategory._id} href={`/products/category/${subcategory.slug}`} className="group">
+                <div className="bg-white border-2 border-gray-200 rounded-2xl p-6 hover:border-indigo-300 hover:shadow-xl transition-all duration-300">
+                  <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-2">
+                    {subcategory.name}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4">{subcategory.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-indigo-600 font-semibold">{subcategory.productCount} products</span>
+                    <ArrowRight className="w-5 h-5 text-indigo-600 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="bg-indigo-50 rounded-2xl p-8 mb-16">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Why Choose Our Boards?</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div>
+                <h3 className="font-semibold text-indigo-600 mb-2">Premium Materials</h3>
+                <p className="text-gray-700">Choose from Display, Foam, Xanita, or Di-Bond boards</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-indigo-600 mb-2">Multiple Sizes</h3>
+                <p className="text-gray-700">From A4 to A0, plus custom sizes available</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-indigo-600 mb-2">Professional Quality</h3>
+                <p className="text-gray-700">Perfect for displays, signage, and presentations</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Fetch the category
