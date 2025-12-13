@@ -76,7 +76,7 @@ export default function HeaderWithCategories() {
 
   const navigation = [
     { name: 'Home', href: '/' },
-    { name: 'Products', href: '/categories', hasDropdown: true },
+    { name: 'Products', href: '/categories' },
     { name: 'Request Quote', href: '/request-quote' },
     { name: 'Upload Artwork', href: '/upload-artwork' },
     { name: 'Cart', href: '/cart', badge: itemCount }
@@ -101,64 +101,24 @@ export default function HeaderWithCategories() {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               {navigation.map((item) => (
-                item.hasDropdown ? (
-                  <div
-                    key={item.name}
-                    className="relative"
-                    onMouseEnter={() => setIsProductsMenuOpen(true)}
-                    onMouseLeave={() => setIsProductsMenuOpen(false)}
-                  >
-                    <button className="flex items-center gap-1 text-white hover:text-indigo-200 transition-colors font-medium">
-                      {item.name}
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
-
-                    {/* Products Dropdown */}
-                    {isProductsMenuOpen && (
-                      <div className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-xl py-2 z-50">
-                        <Link
-                          href="/categories"
-                          className="block px-4 py-2 text-gray-700 hover:bg-indigo-50 font-semibold"
-                        >
-                          All Categories
-                        </Link>
-                        <hr className="my-2" />
-                        <div className="px-4 py-1 text-xs text-gray-500 uppercase tracking-wide font-semibold">
-                          Categories
-                        </div>
-                        {categories.map((category) => (
-                          <Link
-                            key={category._id}
-                            href={`/products/category/${category.slug}`}
-                            className="block px-4 py-2 text-gray-700 hover:bg-indigo-50"
-                          >
-                            {category.name}
-                            {category.featured && <span className="ml-2 text-yellow-500">⭐</span>}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="relative text-white hover:text-indigo-200 transition-colors font-medium"
-                  >
-                    {item.name === 'Cart' ? (
-                      <>
-                        <ShoppingCart className="w-6 h-6" />
-                        {item.badge !== undefined && item.badge > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-indigo-700">
-                            {item.badge}
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      item.name
-                    )}
-                  </Link>
-                )
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="relative text-white hover:text-indigo-200 transition-colors font-medium"
+                >
+                  {item.name === 'Cart' ? (
+                    <>
+                      <ShoppingCart className="w-6 h-6" />
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-indigo-700">
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    item.name
+                  )}
+                </Link>
               ))}
 
               {/* User Menu */}
@@ -287,28 +247,15 @@ export default function HeaderWithCategories() {
                     </Link>
                   </li>
                   
-                  {/* Products with Categories */}
+                  {/* Products */}
                   <li>
                     <Link
                       href="/categories"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="block px-4 py-3 text-gray-700 hover:bg-indigo-50 font-medium"
                     >
-                      All Categories
+                      Products
                     </Link>
-                    <div className="pl-8 py-2 bg-gray-50">
-                      {categories.map((category) => (
-                        <Link
-                          key={category._id}
-                          href={`/products/category/${category.slug}`}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="block px-4 py-2 text-sm text-gray-600 hover:text-indigo-600"
-                        >
-                          {category.name}
-                          {category.featured && <span className="ml-2">⭐</span>}
-                        </Link>
-                      ))}
-                    </div>
                   </li>
 
                   <li>
