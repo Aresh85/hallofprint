@@ -11,14 +11,14 @@ interface BoardCategory {
 }
 
 export default async function BoardsCategoryPage() {
-  // Fetch board subcategories
+  // Fetch board subcategories with product counts
   const boardSubcategories = await sanityFetch<BoardCategory[]>(`
     *[_type == "category" && slug.current in ["display-boards", "foam-boards", "xanita-boards", "di-bond-boards"]] | order(sortOrder asc) {
       _id,
       name,
       "slug": slug.current,
       description,
-      "productCount": count(*[_type == "product" && status == "active" && category._ref == ^._id])
+      "productCount": count(*[_type == "product" && references(^._id)])
     }
   `);
 

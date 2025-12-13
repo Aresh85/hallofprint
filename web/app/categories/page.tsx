@@ -14,7 +14,7 @@ interface Category {
 
 export default async function CategoriesPage() {
   // Server-side fetch all categories EXCLUDING board subcategories
-  const categoriesQuery = `*[_type == "category" && !defined(isSubcategory) || isSubcategory != true] | order(sortOrder asc, name asc) {
+  const categoriesQuery = `*[_type == "category" && (!defined(isSubcategory) || isSubcategory != true)] | order(sortOrder asc, name asc) {
     _id,
     name,
     "slug": slug.current,
