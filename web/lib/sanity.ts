@@ -32,13 +32,16 @@ export async function sanityFetch<T>(query: string, params: Record<string, any> 
 }
 
 // GROQ Query Examples (you will use these later)
-export const productsQuery = `*[_type == "product"]{
+export const productsQuery = `*[_type == "product" && status == "active"] | order(sortOrder asc, name asc) {
   _id,
   name,
   slug,
   basePrice,
   isQuoteOnly,
   "imageUrl": mainImage.asset->url,
+  "category": category->{name, "slug": slug.current},
+  productSize,
+  badges,
   configurationGroups[]{
     groupName,
     choices[]{
@@ -49,8 +52,11 @@ export const productsQuery = `*[_type == "product"]{
   }
 }`;
 
-export const categoriesQuery = `*[_type == "category"]{
+export const categoriesQuery = `*[_type == "category"] | order(sortOrder asc, name asc) {
   _id,
   name,
-  slug
+  "slug": slug.current,
+  description,
+  featured,
+  sortOrder
 }`;

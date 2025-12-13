@@ -63,35 +63,38 @@ const categories = [
   },
 ];
 
-// Standard configuration groups
+// Standard configuration groups with _key for Sanity
 const standardConfigGroups = [
   {
+    _key: 'quantity-group',
     groupName: 'Quantity',
     choices: [
-      { name: '50 units', priceModifier: 0, unit: 'units' },
-      { name: '100 units', priceModifier: -1.25, unit: 'units' },
-      { name: '250 units', priceModifier: -2.50, unit: 'units' },
-      { name: '500 units', priceModifier: -3.75, unit: 'units' },
-      { name: '1000 units', priceModifier: -5.00, unit: 'units' },
-      { name: '2500 units', priceModifier: -6.25, unit: 'units' },
-      { name: '5000 units', priceModifier: -7.50, unit: 'units' },
+      { _key: 'qty-50', name: '50 units', priceModifier: 0, unit: 'units' },
+      { _key: 'qty-100', name: '100 units', priceModifier: -1.25, unit: 'units' },
+      { _key: 'qty-250', name: '250 units', priceModifier: -2.50, unit: 'units' },
+      { _key: 'qty-500', name: '500 units', priceModifier: -3.75, unit: 'units' },
+      { _key: 'qty-1000', name: '1000 units', priceModifier: -5.00, unit: 'units' },
+      { _key: 'qty-2500', name: '2500 units', priceModifier: -6.25, unit: 'units' },
+      { _key: 'qty-5000', name: '5000 units', priceModifier: -7.50, unit: 'units' },
     ],
   },
   {
+    _key: 'paper-type-group',
     groupName: 'Paper Type',
     choices: [
-      { name: 'Economy', priceModifier: 0, unit: 'per sheet' },
-      { name: 'Standard', priceModifier: 0, unit: 'per sheet' },
-      { name: 'Premium', priceModifier: 0.10, unit: 'per sheet' },
+      { _key: 'paper-economy', name: 'Economy', priceModifier: 0, unit: 'per sheet' },
+      { _key: 'paper-standard', name: 'Standard', priceModifier: 0, unit: 'per sheet' },
+      { _key: 'paper-premium', name: 'Premium', priceModifier: 0.10, unit: 'per sheet' },
     ],
   },
   {
+    _key: 'finishing-group',
     groupName: 'Finishing',
     choices: [
-      { name: 'None', priceModifier: 0, unit: 'per sheet' },
-      { name: 'Gloss Lamination', priceModifier: 0.12, unit: 'per sheet' },
-      { name: 'Matt Lamination', priceModifier: 0.12, unit: 'per sheet' },
-      { name: 'Soft Touch Lamination', priceModifier: 0.18, unit: 'per sheet' },
+      { _key: 'finish-none', name: 'None', priceModifier: 0, unit: 'per sheet' },
+      { _key: 'finish-gloss', name: 'Gloss Lamination', priceModifier: 0.12, unit: 'per sheet' },
+      { _key: 'finish-matt', name: 'Matt Lamination', priceModifier: 0.12, unit: 'per sheet' },
+      { _key: 'finish-soft', name: 'Soft Touch Lamination', priceModifier: 0.18, unit: 'per sheet' },
     ],
   },
 ];

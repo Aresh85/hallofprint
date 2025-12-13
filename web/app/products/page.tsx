@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { sanityFetch, productsQuery } from '../../lib/sanity';
 import Image from 'next/image';
-import { ArrowRight, Star, TrendingUp, Sparkles } from 'lucide-react';
+import { ArrowRight, Star, TrendingUp, Sparkles, Grid, Filter } from 'lucide-react';
 
 // Define the shape of the data returned from Sanity for the listing page
 interface ProductListing {
@@ -10,7 +10,21 @@ interface ProductListing {
   slug: { current: string };
   basePrice: number;
   isQuoteOnly: boolean;
-  imageUrl?: string; 
+  imageUrl?: string;
+  category?: {
+    name: string;
+    slug: string;
+  };
+  productSize?: string;
+  badges?: string[];
+}
+
+interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  featured: boolean;
 }
 
 export default async function ProductListingPage() {
