@@ -4,7 +4,7 @@ const client = createClient({
   projectId: 'z3bustn3',
   dataset: 'production',
   useCdn: false,
-  token: 'skdXwipF7i1J6qyIIHBkL6Ps8vXNXvfEGWyKGrKAI6BNfJ8c1ZRWLEpVzJ1H5xyJ4XkGmU5A1v0Aj7w7XW95YUbqLqzJ3kQ0yJ5HvZvA8N1YqJ0z8XW5dYyJ7eXvJ4XvW',
+  token: 'sk3KNUZ3Z3sbd7Jt5fsX0TwUiH2jMnxmXRLMRNFvc1iI344UBAo56IdXTKciKBko26sQbS9IiDJgJ6sNc1eBCZXELD2DjPcECa3a74rZdx5tQp63SziwqkmnIGVtqyWjLIa1hCDGflIaHiJ3txDNOCdmsScFfRluN1urjOHvGyor9Im7tshO',
   apiVersion: '2024-01-01',
 });
 
