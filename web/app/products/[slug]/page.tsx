@@ -24,7 +24,22 @@ interface ProductDetails {
   basePrice: number;
   isQuoteOnly: boolean;
   imageUrl?: string;
+  category?: {
+    _id: string;
+    name: string;
+    slug: string;
+  };
   configurationGroups: ConfigurationGroup[];
+}
+
+interface RelatedProduct {
+  _id: string;
+  name: string;
+  slug: string;
+  basePrice: number;
+  isQuoteOnly: boolean;
+  imageUrl?: string;
+  badges?: string[];
 }
 
 // 2. Define the query function using GROQ to fetch the single product
@@ -35,6 +50,7 @@ const productDetailsQuery = `*[_type == "product" && slug.current == $slug][0]{
   basePrice,
   isQuoteOnly,
   "imageUrl": mainImage.asset->url,
+  "category": category->{_id, name, "slug": slug.current},
   configurationGroups[]{
     groupName,
     choices[]{
@@ -43,6 +59,17 @@ const productDetailsQuery = `*[_type == "product" && slug.current == $slug][0]{
       unit
     }
   }
+}`;
+
+// Query for related products
+const relatedProductsQuery = `*[_type == "product" && status == "active" && category._ref == $categoryId && _id != $currentProductId] | order(sortOrder asc) [0...4] {
+  _id,
+  name,
+  "slug": slug.current,
+  basePrice,
+  isQuoteOnly,
+  "imageUrl": mainImage.asset->url,
+  badges
 }`;
 
 // 3. Optional: Generate static paths for pre-rendering
@@ -68,6 +95,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   if (!product) {
     notFound();
   }
+
+  // Fetch related products from the same category
+  const relatedProducts = product.category
+    ? await sanityFetch<RelatedProduct[]>(relatedProductsQuery, {
+        categoryId: product.category._id,
+        currentProductId: product._id,
+      })
+    : [];
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -254,6 +289,94 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
         </div>
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                You May Also Like
+              </h2>
+              {product.category && (
+                <Link
+                  href={`/products/category/${product.category.slug}`}
+                  className="text-indigo-600 hover:text-indigo-700 font-medium text-sm flex items-center gap-1"
+                >
+                  View all {product.category.name}
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((relatedProduct) => (
+                <Link
+                  key={relatedProduct._id}
+                  href={`/products/${relatedProduct.slug}`}
+                  className="group block"
+                >
+                  <div className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                    {/* Badges */}
+                    {relatedProduct.badges && relatedProduct.badges.length > 0 && (
+                      <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
+                        {relatedProduct.badges.includes('bestseller') && (
+                          <span className="bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                            Best Seller
+                          </span>
+                        )}
+                        {relatedProduct.badges.includes('popular') && (
+                          <span className="bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                            Popular
+                          </span>
+                        )}
+                        {relatedProduct.badges.includes('new') && (
+                          <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                            New
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Product Image */}
+                    <div className="relative w-full aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+                      {relatedProduct.imageUrl ? (
+                        <img
+                          src={relatedProduct.imageUrl}
+                          alt={relatedProduct.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center text-gray-400">
+                            <div className="text-5xl mb-2">📦</div>
+                            <p className="text-xs font-medium">No Image</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Product Info */}
+                    <div className="p-4">
+                      <h3 className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-2 line-clamp-2">
+                        {relatedProduct.name}
+                      </h3>
+                      
+                      {/* Price */}
+                      {relatedProduct.isQuoteOnly ? (
+                        <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
+                          Request Quote
+                        </span>
+                      ) : (
+                        <p className="text-lg font-bold text-indigo-600">
+                          £{relatedProduct.basePrice.toFixed(2)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
