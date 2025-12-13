@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "../context/CartContext";
-import Header from "../components/Layout/Header";
+import Header from "../components/Layout/HeaderWithCategories";
 import Footer from "../components/Layout/Footer";
 import CookieConsent from "../components/Layout/CookieConsent";
 import { Analytics } from "@vercel/analytics/next";
