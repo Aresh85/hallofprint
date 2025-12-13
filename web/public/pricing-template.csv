@@ -1,0 +1,16 @@
+# HALL OF PRINTS PRICING TEMPLATE
+# Instructions: Update prices and modifiers then re-upload to update your products
+# 
+# COLUMN DEFINITIONS:
+# Product_ID: Unique Sanity document ID (DO NOT MODIFY)
+# Product_Name: Product name for reference (DO NOT MODIFY)
+# Base_Price: Starting price in GBP (e.g., 25.00)
+# Qty_XX: Discount percentage for quantity tier (0-100, e.g., 10 = 10% off)
+# Paper_Economy/Standard/Premium: Price modifier per unit in GBP (e.g., 0.10)
+# Finish_None/Gloss/Matt/SoftTouch: Price modifier per unit in GBP (e.g., 0.12)
+# Updated_Date: Last update timestamp (auto-generated)
+#
+# EXAMPLE: A5 Leaflets at £25 base with 5% off for 100 units, £0.10 extra for premium paper
+# prod_001,A5 Leaflets,25.00,0,5,10,15,20,25,30,0,0,0.10,0,0.12,0.12,0.18,2025-01-15
+#
+Product_ID,Product_Name,Base_Price,Qty_50,Qty_100,Qty_250,Qty_500,Qty_1000,Qty_2500,Qty_5000,Paper_Economy,Paper_Standard,Paper_Premium,Finish_None,Finish_Gloss,Finish_Matt,Finish_SoftTouch,Updated_Date

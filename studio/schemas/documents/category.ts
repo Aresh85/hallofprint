@@ -29,7 +29,36 @@ export const category = defineType({
       type: 'text',
       description: 'A brief description of this product category.',
     }),
+    defineField({
+      name: 'image',
+      title: 'Category Image',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+      description: 'Icon or image representing this category',
+    }),
+    defineField({
+      name: 'sortOrder',
+      title: 'Sort Order',
+      type: 'number',
+      description: 'Lower numbers appear first (leave blank for default)',
+    }),
+    defineField({
+      name: 'featured',
+      title: 'Featured Category',
+      type: 'boolean',
+      description: 'Show in featured categories section',
+      initialValue: false,
+    }),
   ],
+  preview: {
+    select: {
+      title: 'name',
+      subtitle: 'description',
+      media: 'image',
+    },
+  },
 });
 
 export default category;
