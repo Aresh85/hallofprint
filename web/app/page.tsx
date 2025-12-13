@@ -21,7 +21,7 @@ export default function Home() {
               Configure size, paper stock, and finish before adding to cart.
             </p>
             <Link 
-              href="/products" 
+              href="/categories" 
               className="inline-block px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Start Shopping
@@ -51,7 +51,7 @@ export default function Home() {
               Already placed your order? Quickly submit your print-ready file here.
             </p>
             <Link 
-              href="/upload-file" 
+              href="/upload-artwork" 
               className="inline-block px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
             >
               Submit File
