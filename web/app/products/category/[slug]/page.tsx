@@ -135,7 +135,87 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         </Link>
 
         {products.length > 0 ? (
-          <ProductsWithFilters products={products} categories={categories} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <Link 
+                key={product._id} 
+                href={`/products/${product.slug.current}`} 
+                className="group block"
+              >
+                <div className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                  {/* Badges */}
+                  {product.badges && product.badges.length > 0 && (
+                    <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
+                      {product.badges.includes('bestseller') && (
+                        <span className="bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                          Best Seller
+                        </span>
+                      )}
+                      {product.badges.includes('popular') && (
+                        <span className="bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                          Popular
+                        </span>
+                      )}
+                      {product.badges.includes('new') && (
+                        <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                          New
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Product Image */}
+                  <div className="relative w-full aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+                    {product.imageUrl ? (
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center text-gray-400">
+                          <div className="text-5xl mb-2">📦</div>
+                          <p className="text-xs font-medium">No Image</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+                      <span className="text-white font-semibold flex items-center space-x-1 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        <span>View Details</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Product Info */}
+                  <div className="p-5">
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-2 line-clamp-2">
+                      {product.name}
+                    </h3>
+                    
+                    {/* Price */}
+                    <div className="flex items-center justify-between">
+                      {product.isQuoteOnly ? (
+                        <span className="inline-flex items-center px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
+                          Request Quote
+                        </span>
+                      ) : (
+                        <div>
+                          <span className="text-sm text-gray-500">From</span>
+                          <p className="text-2xl font-bold text-indigo-600">
+                            £{product.basePrice.toFixed(2)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         ) : (
           <div className="text-center py-20 bg-white rounded-2xl shadow-md">
             <div className="text-6xl mb-4">📦</div>
