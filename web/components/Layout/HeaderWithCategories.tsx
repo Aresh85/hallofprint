@@ -76,7 +76,7 @@ export default function HeaderWithCategories() {
 
   const navigation = [
     { name: 'Home', href: '/' },
-    { name: 'Products', href: '/products', hasDropdown: true },
+    { name: 'Products', href: '/categories', hasDropdown: true },
     { name: 'Request Quote', href: '/request-quote' },
     { name: 'Upload Artwork', href: '/upload-artwork' },
     { name: 'Cart', href: '/cart', badge: itemCount }
@@ -117,10 +117,10 @@ export default function HeaderWithCategories() {
                     {isProductsMenuOpen && (
                       <div className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-xl py-2 z-50">
                         <Link
-                          href="/products"
+                          href="/categories"
                           className="block px-4 py-2 text-gray-700 hover:bg-indigo-50 font-semibold"
                         >
-                          All Products
+                          All Categories
                         </Link>
                         <hr className="my-2" />
                         <div className="px-4 py-1 text-xs text-gray-500 uppercase tracking-wide font-semibold">
@@ -290,11 +290,11 @@ export default function HeaderWithCategories() {
                   {/* Products with Categories */}
                   <li>
                     <Link
-                      href="/products"
+                      href="/categories"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="block px-4 py-3 text-gray-700 hover:bg-indigo-50 font-medium"
                     >
-                      All Products
+                      All Categories
                     </Link>
                     <div className="pl-8 py-2 bg-gray-50">
                       {categories.map((category) => (

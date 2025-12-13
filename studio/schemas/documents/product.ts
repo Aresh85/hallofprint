@@ -151,9 +151,11 @@ export const product = defineType({
           { title: 'Best Seller', value: 'bestseller' },
           { title: 'New', value: 'new' },
           { title: 'Best Value', value: 'bestvalue' },
+          { title: 'Same Day Available', value: 'sameday' },
+          { title: 'Next Day Available', value: 'nextday' },
         ],
       },
-      description: 'Display badges on product cards',
+      description: 'Display badges on product cards (including delivery speed)',
     }),
 
     // 6. AI & Recommendation Attributes
