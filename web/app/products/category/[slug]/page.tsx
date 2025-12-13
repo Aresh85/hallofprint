@@ -28,8 +28,8 @@ interface ProductListing {
   badges?: string[];
 }
 
-export default async function CategoryPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
 
   // Fetch the category
   const categoryQuery = `*[_type == "category" && slug.current == $slug][0]{
