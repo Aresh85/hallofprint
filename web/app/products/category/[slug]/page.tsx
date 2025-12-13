@@ -31,6 +31,12 @@ interface ProductListing {
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
+  // Redirect to boards landing page if this is the boards category
+  if (slug === 'boards') {
+    const { redirect } = await import('next/navigation');
+    redirect('/products/category/boards');
+  }
+
   // Fetch the category
   const categoryQuery = `*[_type == "category" && slug.current == $slug][0]{
     _id,
